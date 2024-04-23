@@ -1,86 +1,74 @@
-//
-//  ContentView.swift
-//  BrickLess
-//
-//  Created by Rutujit Mallikarjuna on 4/21/24.
-//
-
 import SwiftUI
-import CoreData
 
 struct ContentView: View {
-    @Environment(\.managedObjectContext) private var viewContext
-
-    @FetchRequest(
-        sortDescriptors: [NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)],
-        animation: .default)
-    private var items: FetchedResults<Item>
-
     var body: some View {
         NavigationView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp!, formatter: itemFormatter)")
-                    } label: {
-                        Text(item.timestamp!, formatter: itemFormatter)
+            ZStack {
+                Color.black.edgesIgnoringSafeArea(.all)
+                
+                VStack(spacing: 20) {
+                    Text("BrickLess")
+                        .font(.custom("Arial", size: 60))
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                        .padding()
+                    
+                    NavigationLink(destination: RecreationalView()) {
+                        Text("Recreational")
+                            .foregroundColor(.white)
+                            .font(.title)
                     }
-                }
-                .onDelete(perform: deleteItems)
-            }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
+                    .padding()
+                    .background(Color.blue)
+                    .cornerRadius(10)
+                    
+                    NavigationLink(destination: PremiumView()) {
+                        Text("Premium")
+                            .foregroundColor(.white)
+                            .font(.title)
                     }
+                    .padding()
+                    .background(Color.red)
+                    .cornerRadius(10)
+                    
+                    NavigationLink(destination: ProfessionalView()) {
+                        Text("Professional")
+                            .foregroundColor(.white)
+                            .font(.title)
+                    }
+                    .padding()
+                    .background(Color.green)
+                    .cornerRadius(10)
                 }
             }
-            Text("Select an item")
-        }
-    }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(context: viewContext)
-            newItem.timestamp = Date()
-
-            do {
-                try viewContext.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
-            }
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            offsets.map { items[$0] }.forEach(viewContext.delete)
-
-            do {
-                try viewContext.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
-            }
+            .navigationBarHidden(true)
         }
     }
 }
 
-private let itemFormatter: DateFormatter = {
-    let formatter = DateFormatter()
-    formatter.dateStyle = .short
-    formatter.timeStyle = .medium
-    return formatter
-}()
+struct RecreationalView: View {
+    var body: some View {
+        Text("Recreational View")
+            .navigationBarHidden(true)
+    }
+}
 
-#Preview {
-    ContentView().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
+struct PremiumView: View {
+    var body: some View {
+        Text("Premium View")
+            .navigationBarHidden(true)
+    }
+}
+
+struct ProfessionalView: View {
+    var body: some View {
+        Text("Professional View")
+            .navigationBarHidden(true)
+    }
+}
+
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView()
+    }
 }

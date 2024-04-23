@@ -13,6 +13,7 @@
 		910B08112BD6405400D4E602 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 910B08102BD6405400D4E602 /* Preview Assets.xcassets */; };
 		910B08132BD6405400D4E602 /* Persistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 910B08122BD6405400D4E602 /* Persistence.swift */; };
 		910B08162BD6405400D4E602 /* BrickLess.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 910B08142BD6405400D4E602 /* BrickLess.xcdatamodeld */; };
+		91A902CD2BD6BE0F00DB3743 /* LoadingScreenUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91A902CC2BD6BE0F00DB3743 /* LoadingScreenUI.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -23,6 +24,7 @@
 		910B08102BD6405400D4E602 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		910B08122BD6405400D4E602 /* Persistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Persistence.swift; sourceTree = "<group>"; };
 		910B08152BD6405400D4E602 /* BrickLess.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = BrickLess.xcdatamodel; sourceTree = "<group>"; };
+		91A902CC2BD6BE0F00DB3743 /* LoadingScreenUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingScreenUI.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -59,6 +61,7 @@
 				910B080B2BD6405300D4E602 /* ContentView.swift */,
 				910B080D2BD6405400D4E602 /* Assets.xcassets */,
 				910B08122BD6405400D4E602 /* Persistence.swift */,
+				91A902CC2BD6BE0F00DB3743 /* LoadingScreenUI.swift */,
 				910B08142BD6405400D4E602 /* BrickLess.xcdatamodeld */,
 				910B080F2BD6405400D4E602 /* Preview Content */,
 			);
@@ -147,6 +150,7 @@
 				910B08132BD6405400D4E602 /* Persistence.swift in Sources */,
 				910B080C2BD6405300D4E602 /* ContentView.swift in Sources */,
 				910B080A2BD6405300D4E602 /* BrickLessApp.swift in Sources */,
+				91A902CD2BD6BE0F00DB3743 /* LoadingScreenUI.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

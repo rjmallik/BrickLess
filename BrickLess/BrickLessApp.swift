@@ -1,10 +1,3 @@
-//
-//  BrickLessApp.swift
-//  BrickLess
-//
-//  Created by Rutujit Mallikarjuna on 4/21/24.
-//
-
 import SwiftUI
 
 @main
@@ -13,7 +6,8 @@ struct BrickLessApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            // Start with LoadingView, not ContentView
+            LoadingView()
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
         }
     }
