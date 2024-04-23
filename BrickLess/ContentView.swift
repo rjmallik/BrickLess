@@ -6,39 +6,37 @@ struct ContentView: View {
             ZStack {
                 Color.black.edgesIgnoringSafeArea(.all)
                 
-                VStack(spacing: 20) {
+                VStack {
+                    Spacer() // Use a single spacer at the top to push content down
+                    
                     Text("BrickLess")
                         .font(.custom("Arial", size: 60))
                         .fontWeight(.bold)
                         .foregroundColor(.white)
-                        .padding()
                     
                     NavigationLink(destination: RecreationalView()) {
                         Text("Recreational")
                             .foregroundColor(.white)
                             .font(.title)
+                            .frame(maxWidth: .infinity, minHeight: 250) // Make the button wider and taller
                     }
                     .padding()
                     .background(Color.blue)
                     .cornerRadius(10)
+                    .padding(.vertical, 35) // Add horizontal padding
                     
                     NavigationLink(destination: PremiumView()) {
                         Text("Premium")
                             .foregroundColor(.white)
                             .font(.title)
+                            .frame(maxWidth: .infinity, minHeight: 120) // Make the button wider and taller
                     }
                     .padding()
                     .background(Color.red)
                     .cornerRadius(10)
+                    .padding(.vertical, 35) // Add horizontal padding
                     
-                    NavigationLink(destination: ProfessionalView()) {
-                        Text("Professional")
-                            .foregroundColor(.white)
-                            .font(.title)
-                    }
-                    .padding()
-                    .background(Color.green)
-                    .cornerRadius(10)
+                    Spacer() // Use a single spacer at the bottom to push content up
                 }
             }
             .navigationBarHidden(true)
@@ -46,24 +44,78 @@ struct ContentView: View {
     }
 }
 
+
+
 struct RecreationalView: View {
+    @Environment(\.presentationMode) var presentationMode
+
+
     var body: some View {
-        Text("Recreational View")
-            .navigationBarHidden(true)
+        GeometryReader { geometry in
+            VStack(spacing: geometry.size.height * 0.15) {  // Reduced vertical whitespace
+                HStack(spacing: geometry.size.width * 0.05) {  // Reduced horizontal whitespace
+                    Text("Find Games Near You")
+                        .frame(width: geometry.size.width * 0.45, height: geometry.size.width * 0.45)
+                        .background(Color.red)
+                        .foregroundColor(.white)
+                        .cornerRadius(15) // Curved edges
+                    Text("My Profile")
+                        .frame(width: geometry.size.width * 0.45, height: geometry.size.width * 0.45)
+                        .background(Color.green)
+                        .foregroundColor(.white)
+                        .cornerRadius(15) // Curved edges
+                }
+                HStack(spacing: geometry.size.width * 0.05) {  // Reduced horizontal whitespace
+                    Text("Add Friends")
+                        .frame(width: geometry.size.width * 0.45, height: geometry.size.width * 0.45)
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(15) // Curved edges
+                    Text("My Guys")
+                        .frame(width: geometry.size.width * 0.45, height: geometry.size.width * 0.45)
+                        .background(Color.yellow)
+                        .foregroundColor(.black)
+                        .cornerRadius(15) // Curved edges
+                }
+            }
+            .frame(width: geometry.size.width, height: geometry.size.height)
+            .padding(2)  // Reduced padding around the VStack
+        }
+        .edgesIgnoringSafeArea(.all)
+        .navigationBarBackButtonHidden(true)
+        .navigationBarItems(leading: Button(action: {
+            self.presentationMode.wrappedValue.dismiss()
+        }) {
+            Text("Back")
+                .frame(minWidth: 84, minHeight: 34) // Minimum recommended tap target size for iOS
+                .background(Color.gray) // Give it a gray background
+                .foregroundColor(.white) // Text color
+                .cornerRadius(5) // Rounded corners
+        })
+        .navigationBarHidden(false) // Show the navigation bar
     }
 }
 
+// Apply the same modifications for PremiumView and ProfessionalView
 struct PremiumView: View {
-    var body: some View {
-        Text("Premium View")
-            .navigationBarHidden(true)
-    }
-}
+    @Environment(\.presentationMode) var presentationMode
 
-struct ProfessionalView: View {
     var body: some View {
-        Text("Professional View")
-            .navigationBarHidden(true)
+        VStack {
+            Text("Premium View")
+            // Other content
+        }
+        .navigationBarBackButtonHidden(true)
+        .navigationBarItems(leading: Button(action: {
+            self.presentationMode.wrappedValue.dismiss()
+        }) {
+            Text("Back")
+                .frame(minWidth: 84, minHeight: 34)
+                .background(Color.gray)
+                .foregroundColor(.white)
+                .cornerRadius(5)
+        })
+        .navigationBarHidden(false)
     }
 }
 
