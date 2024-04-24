@@ -4,34 +4,35 @@ import Firebase
 struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @ObservedObject private var session = SessionStore()
-    @State private var errorMessage: String?
 
     var body: some View {
-        Group {
-            if session.isLoggingIn {
-                LoadingView(duration: 0.5)
-                    .onAppear {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0) {
-                            if !session.isLoggedIn {
-                                errorMessage = "Incorrect username or password."
-                            }
-                        }
-                    }
-            } else if session.isLoggedIn {
+        NavigationView {
+            if session.isLoggedIn {
+                // Navigate directly to MainAppView upon successful login
                 MainAppView()
             } else {
-                LoginView(session: session, errorMessage: $errorMessage)
-                    .onReceive(session.$isLoggedIn) { newValue in
-                        if newValue {
-                            errorMessage = nil
-                        }
+                VStack {
+                    if session.isLoggingIn {
+                        // Show a loading view while the login process is ongoing
+                        LoadingView(duration: 2)
+                    } else {
+                        // Show the LoginView
+                        LoginView(session: session, errorMessage: $session.loginError)
                     }
+
+                    // Display error message from SessionStore if it exists
+                    if let errorMessage = session.loginError {
+                        Text(errorMessage)
+                            .foregroundColor(.red)
+                            .padding()
+                    }
+                }
+                .navigationBarHidden(true) // Hide navigation bar
             }
         }
-        .navigationBarHidden(true)
+        .navigationViewStyle(StackNavigationViewStyle()) // Use stack navigation style to handle navigation views correctly
     }
 }
-
 
 
 

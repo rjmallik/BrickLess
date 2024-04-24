@@ -5,44 +5,31 @@ struct LoginView: View {
     @State private var username: String = ""
     @State private var password: String = ""
     @Binding var errorMessage: String?
-
-    init(session: SessionStore, errorMessage: Binding<String?>) {
-        self.session = session
-        _errorMessage = errorMessage
-    }
-
+    
     var body: some View {
-        NavigationView {
-            VStack {
-                TextField("Username", text: $username)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .autocapitalization(.none)
-                    .padding()
-
-                SecureField("Password", text: $password)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .autocapitalization(.none)
-                    .padding()
-
-                if let errorMessage = errorMessage {
-                    Text(errorMessage).foregroundColor(.red)
-                }
-
-                Button("Login") {
-                    session.loginUser(username: username, password: password)
-                    if !session.isLoggedIn {
-                        errorMessage = "Incorrect username or password."
-                    }
-                }
-                .foregroundColor(.white)
-                .background(Color.blue)
-                .cornerRadius(8)
+        VStack {
+            TextField("Username", text: $username)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .autocapitalization(.none)
                 .padding()
 
-                NavigationLink("Create Account", destination: RegisterView(session: session))
-                    .padding()
+            SecureField("Password", text: $password)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .autocapitalization(.none)
+                .padding()
+
+            Button("Login") {
+                // Initiates the login process
+                self.errorMessage = "" // Clear any previous error messages
+                session.loginUser(username: username, password: password)
             }
+            .foregroundColor(.white)
+            .background(Color.blue)
+            .cornerRadius(8)
+            .padding()
+
+            NavigationLink("Create Account", destination: RegisterView(session: session))
+                .padding()
         }
-        .padding()
     }
 }
