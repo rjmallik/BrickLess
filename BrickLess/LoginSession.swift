@@ -221,7 +221,10 @@ class SessionStore: ObservableObject {
                 self.isLoading = false
                 if let error {
                     let nsError = error as NSError
-                    if AuthErrorCode(rawValue: nsError.code) == .requiresRecentLogin {
+                    // The Firebase version Xcode resolved makes
+                    // AuthErrorCode a struct whose cases live on the
+                    // nested Code enum, so the raw value is read there.
+                    if AuthErrorCode.Code(rawValue: nsError.code) == .requiresRecentLogin {
                         completion("For security, sign out and sign back in, then delete your account again.")
                     } else {
                         completion(Self.friendlyError(error))
@@ -357,7 +360,7 @@ class SessionStore: ObservableObject {
 
     static func friendlyError(_ error: Error) -> String {
         let nsError = error as NSError
-        guard let code = AuthErrorCode(rawValue: nsError.code) else {
+        guard let code = AuthErrorCode.Code(rawValue: nsError.code) else {
             return error.localizedDescription
         }
         switch code {
