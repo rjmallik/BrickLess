@@ -2,34 +2,70 @@ import SwiftUI
 
 struct LoginView: View {
     @ObservedObject var session: SessionStore
-    @State private var username: String = ""
+    @State private var emailOrUsername: String = ""
     @State private var password: String = ""
+    @State private var showingReset = false
+    @State private var resetEmail: String = ""
+    @State private var resetMessage: String?
     @Binding var errorMessage: String?
-    
+
     var body: some View {
         VStack {
-            TextField("Username", text: $username)
+            Text("BrickLess")
+                .font(.system(size: 44, weight: .bold))
+                .padding(.bottom, 8)
+
+            TextField("Email or username", text: $emailOrUsername)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
-                .autocapitalization(.none)
-                .padding()
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .keyboardType(.emailAddress)
+                .padding(.horizontal)
 
             SecureField("Password", text: $password)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
-                .autocapitalization(.none)
-                .padding()
+                .padding(.horizontal)
 
-            Button("Login") {
-                // Initiates the login process
-                self.errorMessage = "" // Clear any previous error messages
-                session.loginUser(username: username, password: password)
+            if session.isLoading {
+                ProgressView()
+                    .padding()
+            } else {
+                Button("Login") {
+                    errorMessage = nil
+                    session.signIn(emailOrUsername: emailOrUsername, password: password)
+                }
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.blue)
+                .cornerRadius(8)
+                .padding()
             }
-            .foregroundColor(.white)
-            .background(Color.blue)
-            .cornerRadius(8)
-            .padding()
+
+            if let errorMessage {
+                Text(errorMessage)
+                    .foregroundColor(.red)
+                    .padding(.horizontal)
+            }
 
             NavigationLink("Create Account", destination: RegisterView(session: session))
                 .padding()
+
+            Button("Forgot password?") { showingReset = true }
+                .font(.footnote)
+        }
+        .alert("Reset password", isPresented: $showingReset) {
+            TextField("Email", text: $resetEmail)
+                .textInputAutocapitalization(.never)
+                .keyboardType(.emailAddress)
+            Button("Send reset email") {
+                session.sendPasswordReset(email: resetEmail) { error in
+                    resetMessage = error ?? "Reset email sent. Check your inbox."
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text(resetMessage ?? "We will email you a link to reset your password.")
         }
     }
 }

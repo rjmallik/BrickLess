@@ -1,20 +1,29 @@
 import SwiftUI
+import CoreLocation
 import Firebase
 
 struct ContentView: View {
-    @Environment(\.managedObjectContext) private var viewContext
-    @ObservedObject private var session = SessionStore()
+    @StateObject private var session = SessionStore()
 
     var body: some View {
         NavigationView {
             if session.isLoggedIn {
-                // Navigate directly to MainAppView upon successful login
-                MainAppView()
+                if session.needsProfileSetup {
+                    // Step 2 of account setup, before Home.
+                    ProfileSetupView(session: session)
+                        .navigationBarHidden(true)
+                } else {
+                    MainAppView(session: session)
+                }
             } else {
                 VStack {
-                    if session.isLoggingIn {
-                        // Show a loading view while the login process is ongoing
-                        LoadingView(duration: 2)
+                    if session.isLoading {
+                        // Signing in: a spinner only. The launch splash
+                        // (LoadingView, in BrickLessApp) must not be reused
+                        // here: after 2s it opens a second ContentView with
+                        // a second, empty SessionStore.
+                        ProgressView("Signing you in…")
+                            .padding()
                     } else {
                         // Show the LoginView
                         LoginView(session: session, errorMessage: $session.loginError)
@@ -37,21 +46,17 @@ struct ContentView: View {
 
 
 struct MainAppView: View {
+    @ObservedObject var session: SessionStore
+
     var body: some View {
         ZStack {
             Color.black.edgesIgnoringSafeArea(.all)
             VStack {
                 Spacer()
                 Text("BrickLess").font(.custom("Arial", size: 60)).fontWeight(.bold).foregroundColor(.white)
-                NavigationLink(destination: RecreationalView()) {
+                NavigationLink(destination: RecreationalView(session: session)) {
                     Text("Recreational").foregroundColor(.white).font(.title)
                     .frame(maxWidth: .infinity, minHeight: 250).background(Color.blue).cornerRadius(10)
-                }
-                .padding(.vertical, 35)
-                
-                NavigationLink(destination: PremiumView()) {
-                    Text("Premium").foregroundColor(.white).font(.title)
-                    .frame(maxWidth: .infinity, minHeight: 120).background(Color.red).cornerRadius(10)
                 }
                 .padding(.vertical, 35)
                 Spacer()
@@ -64,38 +69,124 @@ struct MainAppView: View {
 
 
 struct RecreationalView: View {
+    @ObservedObject var session: SessionStore
     @Environment(\.presentationMode) var presentationMode
+    @StateObject private var courtStore = CourtStore()
+    @StateObject private var locationManager = LocationManager()
+
+    /// The three courts closest to the user, so the map's results are
+    /// visible on the hub itself instead of hidden behind a tile.
+    private var nearestCourts: [(court: Court, distance: Double?)] {
+        let userLocation = locationManager.location.map {
+            CLLocation(latitude: $0.latitude, longitude: $0.longitude)
+        }
+        let withDistance = courtStore.courts.map { court -> (Court, Double?) in
+            guard let userLocation else { return (court, nil) }
+            let d = userLocation.distance(from: CLLocation(latitude: court.latitude,
+                                                           longitude: court.longitude))
+            return (court, d)
+        }
+        return Array(withDistance.sorted { ($0.1 ?? .infinity) < ($1.1 ?? .infinity) }.prefix(3))
+    }
+
+    private func distanceLabel(_ meters: Double?) -> String {
+        guard let meters else { return "" }
+        if meters < 1000 { return "\(Int(meters)) m away" }
+        return String(format: "%.1f km away", meters / 1000)
+    }
+
+    private func sportLabel(_ sport: String) -> String {
+        switch sport {
+        case "soccer": return "Soccer"
+        case "football": return "Football"
+        case "multi": return "Multi-sport"
+        default: return "Basketball"
+        }
+    }
 
     var body: some View {
         GeometryReader { geometry in
-            VStack(spacing: geometry.size.height * 0.15) {  // Reduced vertical whitespace
-                HStack(spacing: geometry.size.width * 0.05) {  // Reduced horizontal whitespace
-                    Text("Find Games Near You")
-                        .frame(width: geometry.size.width * 0.45, height: geometry.size.width * 0.45)
-                        .background(Color.red)
-                        .foregroundColor(.white)
-                        .cornerRadius(15) // Curved edges
-                    Text("My Profile")
-                        .frame(width: geometry.size.width * 0.45, height: geometry.size.width * 0.45)
-                        .background(Color.green)
-                        .foregroundColor(.white)
-                        .cornerRadius(15) // Curved edges
+            ScrollView {
+                VStack(spacing: 16) {
+                    HStack(spacing: geometry.size.width * 0.05) {  // Reduced horizontal whitespace
+                        NavigationLink(destination: CourtMapView(session: session)) {
+                            Text("Find Games Near You")
+                                .frame(width: geometry.size.width * 0.45, height: geometry.size.width * 0.45)
+                                .background(Color.red)
+                                .foregroundColor(.white)
+                                .cornerRadius(15) // Curved edges
+                        }
+                        NavigationLink(destination: ProfileView(session: session)) {
+                            Text("My Profile")
+                                .frame(width: geometry.size.width * 0.45, height: geometry.size.width * 0.45)
+                                .background(Color.green)
+                                .foregroundColor(.white)
+                                .cornerRadius(15) // Curved edges
+                        }
+                    }
+                    HStack(spacing: geometry.size.width * 0.05) {  // Reduced horizontal whitespace
+                        NavigationLink(destination: FriendsView(session: session, selectedTab: 1)) {
+                            Text("Add Friends")
+                                .frame(width: geometry.size.width * 0.45, height: geometry.size.width * 0.45)
+                                .background(Color.blue)
+                                .foregroundColor(.white)
+                                .cornerRadius(15) // Curved edges
+                        }
+                        NavigationLink(destination: FriendsView(session: session, selectedTab: 0)) {
+                            Text("My Guys")
+                                .frame(width: geometry.size.width * 0.45, height: geometry.size.width * 0.45)
+                                .background(Color.yellow)
+                                .foregroundColor(.black)
+                                .cornerRadius(15) // Curved edges
+                        }
+                    }
+
+                    // Courts near you, right on the hub: the map's results
+                    // are shown here, not just behind the Find Games tile.
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text("Courts near you")
+                                .font(.headline)
+                            Spacer()
+                            NavigationLink("See map", destination: CourtMapView(session: session))
+                                .font(.subheadline)
+                        }
+                        if courtStore.isLoading && courtStore.courts.isEmpty {
+                            ProgressView("Finding courts near you…")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        } else if nearestCourts.isEmpty {
+                            Text("No courts found near you yet. Tap Add court on the map to add one.")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        } else {
+                            ForEach(nearestCourts, id: \.court.id) { item in
+                                NavigationLink(destination: CourtMapView(session: session)) {
+                                    HStack {
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text(item.court.name)
+                                                .font(.subheadline.bold())
+                                            Text(sportLabel(item.court.sport))
+                                                .font(.footnote)
+                                                .foregroundColor(.secondary)
+                                        }
+                                        Spacer()
+                                        Text(distanceLabel(item.distance))
+                                            .font(.footnote)
+                                            .foregroundColor(.secondary)
+                                    }
+                                    .padding(.vertical, 6)
+                                }
+                            }
+                        }
+                    }
+                    .padding()
+                    .background(Color(.systemGray6))
+                    .cornerRadius(12)
                 }
-                HStack(spacing: geometry.size.width * 0.05) {  // Reduced horizontal whitespace
-                    Text("Add Friends")
-                        .frame(width: geometry.size.width * 0.45, height: geometry.size.width * 0.45)
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(15) // Curved edges
-                    Text("My Guys")
-                        .frame(width: geometry.size.width * 0.45, height: geometry.size.width * 0.45)
-                        .background(Color.yellow)
-                        .foregroundColor(.black)
-                        .cornerRadius(15) // Curved edges
-                }
+                .padding(2)
             }
             .frame(width: geometry.size.width, height: geometry.size.height)
-            .padding(2)  // Reduced padding around the VStack
         }
         .edgesIgnoringSafeArea(.all)
         .navigationBarBackButtonHidden(true)
@@ -109,29 +200,14 @@ struct RecreationalView: View {
                 .cornerRadius(5) // Rounded corners
         })
         .navigationBarHidden(false) // Show the navigation bar
-    }
-}
-
-// Apply the same modifications for PremiumView and ProfessionalView
-struct PremiumView: View {
-    @Environment(\.presentationMode) var presentationMode
-
-    var body: some View {
-        VStack {
-            Text("Premium View")
-            // Other content
+        .onAppear {
+            locationManager.requestPermission()
+            courtStore.fetchCourts(around: CLLocationCoordinate2D(latitude: 47.6062, longitude: -122.3321))
         }
-        .navigationBarBackButtonHidden(true)
-        .navigationBarItems(leading: Button(action: {
-            self.presentationMode.wrappedValue.dismiss()
-        }) {
-            Text("Back")
-                .frame(minWidth: 84, minHeight: 34)
-                .background(Color.gray)
-                .foregroundColor(.white)
-                .cornerRadius(5)
-        })
-        .navigationBarHidden(false)
+        .onChange(of: locationManager.location) { _, location in
+            guard let location else { return }
+            courtStore.fetchCourts(around: location)
+        }
     }
 }
 

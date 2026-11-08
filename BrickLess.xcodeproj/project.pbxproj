@@ -45,6 +45,15 @@
 		9121B84C2BD89003002F5793 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9121B84B2BD89003002F5793 /* LoginView.swift */; };
 		9121B84E2BD8909C002F5793 /* RegisterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9121B84D2BD8909C002F5793 /* RegisterView.swift */; };
 		91A902CD2BD6BE0F00DB3743 /* LoadingScreenUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91A902CC2BD6BE0F00DB3743 /* LoadingScreenUI.swift */; };
+		91B10002F1A2000100C3D001 /* UserProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B10001F1A2000100C3D001 /* UserProfile.swift */; };
+		91B10004F1A2000100C3D001 /* ProfileSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B10003F1A2000100C3D001 /* ProfileSetupView.swift */; };
+		91B10006F1A2000100C3D001 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B10005F1A2000100C3D001 /* ProfileView.swift */; };
+		91B1001CF1A2000100C3D001 /* BookingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B1001BF1A2000100C3D001 /* BookingView.swift */; };
+		91B1001AF1A2000100C3D001 /* BookingStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B10019F1A2000100C3D001 /* BookingStore.swift */; };
+		91B10018F1A2000100C3D001 /* CourtMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B10017F1A2000100C3D001 /* CourtMapView.swift */; };
+		91B10016F1A2000100C3D001 /* CourtStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B10015F1A2000100C3D001 /* CourtStore.swift */; };
+		91B10014F1A2000100C3D001 /* FriendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B10013F1A2000100C3D001 /* FriendsView.swift */; };
+		91B10012F1A2000100C3D001 /* FriendsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B10011F1A2000100C3D001 /* FriendsStore.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -60,6 +69,15 @@
 		9121B84B2BD89003002F5793 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		9121B84D2BD8909C002F5793 /* RegisterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegisterView.swift; sourceTree = "<group>"; };
 		91A902CC2BD6BE0F00DB3743 /* LoadingScreenUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingScreenUI.swift; sourceTree = "<group>"; };
+		91B10001F1A2000100C3D001 /* UserProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfile.swift; sourceTree = "<group>"; };
+		91B10003F1A2000100C3D001 /* ProfileSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSetupView.swift; sourceTree = "<group>"; };
+		91B10005F1A2000100C3D001 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		91B1001BF1A2000100C3D001 /* BookingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookingView.swift; sourceTree = "<group>"; };
+		91B10019F1A2000100C3D001 /* BookingStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookingStore.swift; sourceTree = "<group>"; };
+		91B10017F1A2000100C3D001 /* CourtMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourtMapView.swift; sourceTree = "<group>"; };
+		91B10015F1A2000100C3D001 /* CourtStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourtStore.swift; sourceTree = "<group>"; };
+		91B10013F1A2000100C3D001 /* FriendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsView.swift; sourceTree = "<group>"; };
+		91B10011F1A2000100C3D001 /* FriendsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsStore.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -128,6 +146,15 @@
 				910B08122BD6405400D4E602 /* Persistence.swift */,
 				9121B8472BD88D9D002F5793 /* LoginSession.swift */,
 				91A902CC2BD6BE0F00DB3743 /* LoadingScreenUI.swift */,
+				91B10001F1A2000100C3D001 /* UserProfile.swift */,
+				91B10003F1A2000100C3D001 /* ProfileSetupView.swift */,
+				91B10005F1A2000100C3D001 /* ProfileView.swift */,
+				91B1001BF1A2000100C3D001 /* BookingView.swift */,
+				91B10019F1A2000100C3D001 /* BookingStore.swift */,
+				91B10017F1A2000100C3D001 /* CourtMapView.swift */,
+				91B10015F1A2000100C3D001 /* CourtStore.swift */,
+				91B10013F1A2000100C3D001 /* FriendsView.swift */,
+				91B10011F1A2000100C3D001 /* FriendsStore.swift */,
 				910B08142BD6405400D4E602 /* BrickLess.xcdatamodeld */,
 				910B080F2BD6405400D4E602 /* Preview Content */,
 			);
@@ -253,6 +280,15 @@
 				9121B84E2BD8909C002F5793 /* RegisterView.swift in Sources */,
 				9121B8482BD88D9D002F5793 /* LoginSession.swift in Sources */,
 				91A902CD2BD6BE0F00DB3743 /* LoadingScreenUI.swift in Sources */,
+				91B10002F1A2000100C3D001 /* UserProfile.swift in Sources */,
+				91B10004F1A2000100C3D001 /* ProfileSetupView.swift in Sources */,
+				91B10006F1A2000100C3D001 /* ProfileView.swift in Sources */,
+				91B1001CF1A2000100C3D001 /* BookingView.swift in Sources */,
+				91B1001AF1A2000100C3D001 /* BookingStore.swift in Sources */,
+				91B10018F1A2000100C3D001 /* CourtMapView.swift in Sources */,
+				91B10016F1A2000100C3D001 /* CourtStore.swift in Sources */,
+				91B10014F1A2000100C3D001 /* FriendsView.swift in Sources */,
+				91B10012F1A2000100C3D001 /* FriendsStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -391,6 +427,7 @@
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "BrickLess uses your location to show basketball courts and soccer fields near you.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -419,6 +456,7 @@
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "BrickLess uses your location to show basketball courts and soccer fields near you.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (

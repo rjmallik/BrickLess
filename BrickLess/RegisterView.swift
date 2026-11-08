@@ -1,41 +1,71 @@
 import SwiftUI
 
+/// Step 1 of account setup: email + username + password.
+/// On success the app routes to ProfileSetupView (via SessionStore.needsProfileSetup).
 struct RegisterView: View {
     @ObservedObject var session: SessionStore
+    @State private var email: String = ""
     @State private var username: String = ""
     @State private var password: String = ""
+    @State private var confirmPassword: String = ""
     @State private var errorMessage: String?
 
     var body: some View {
         VStack {
-            TextField("Choose a username", text: $username)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .autocapitalization(.none)
-                .padding()
+            Text("Create your account")
+                .font(.title2.bold())
+                .padding(.bottom, 8)
 
-            SecureField("Choose a password", text: $password)
+            TextField("Email", text: $email)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
-                .autocapitalization(.none)
-                .padding()
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .keyboardType(.emailAddress)
+                .padding(.horizontal)
 
-            if let errorMessage = errorMessage {
-                Text(errorMessage).foregroundColor(.red).padding()
+            TextField("Username", text: $username)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .padding(.horizontal)
+            Text("3-20 letters, numbers or underscores. This is how other players find you.")
+                .font(.footnote)
+                .foregroundColor(.secondary)
+                .padding(.horizontal)
+
+            SecureField("Password", text: $password)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .padding(.horizontal)
+
+            SecureField("Confirm password", text: $confirmPassword)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .padding(.horizontal)
+
+            if let errorMessage {
+                Text(errorMessage).foregroundColor(.red).padding(.horizontal)
             }
 
-            Button("Create Account") {
-                session.registerUser(username: username, password: password) { success, message in
-                    if success {
-                        session.loginUser(username: username, password: password)
-                    } else {
-                        self.errorMessage = message
+            if session.isLoading {
+                ProgressView().padding()
+            } else {
+                Button("Create Account") {
+                    errorMessage = nil
+                    guard password == confirmPassword else {
+                        errorMessage = "Passwords do not match."
+                        return
+                    }
+                    session.signUp(email: email, username: username, password: password) { _, error in
+                        errorMessage = error
                     }
                 }
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.green)
+                .cornerRadius(8)
+                .padding()
             }
-            .foregroundColor(.white)
-            .background(Color.green)
-            .cornerRadius(8)
-            .padding()
         }
-        .padding()
+        .padding(.vertical)
     }
 }

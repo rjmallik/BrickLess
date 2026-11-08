@@ -1,0 +1,100 @@
+rules_version = '2';
+
+// BrickLess Firestore rules. Deploy with: firebase deploy --only firestore:rules
+// (Firebase console: Firestore Database must exist first, and
+// Email/Password must be enabled in Authentication > Sign-in method.)
+//
+// Collections:
+//   users/{uid}       - public profiles, one per Auth user
+//   usernames/{lower} - username reservations { uid, email }
+//   friendships/{id}  - friend requests / friendships (see FriendsStore)
+//   courts/{id}       - community-added courts/fields (see CourtStore)
+//   bookings/{id}     - court bookings / game slots
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    // Profiles: anyone signed in can read; only the owner can write.
+    match /users/{uid} {
+      allow read: if signedIn();
+      allow create, update: if isOwner(uid);
+      allow delete: if false;
+    }
+
+    // Username reservations: anyone signed in can read (for login-by-username
+    // and availability checks). A user can only claim a name for themself,
+    // and only when that name is not already taken.
+    match /usernames/{name} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.uid == request.auth.uid
+        && !exists(/databases/$(database)/documents/usernames/$(name));
+      allow update: if signedIn()
+        && resource.data.uid == request.auth.uid
+        && request.resource.data.uid == request.auth.uid;
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    // Friendships: readable by the two people involved; a request can only
+    // be created by the requester, accepted/declined by the other side.
+    match /friendships/{id} {
+      allow read: if signedIn()
+        && (resource.data.fromUid == request.auth.uid
+          || resource.data.toUid == request.auth.uid);
+      allow create: if signedIn()
+        && request.resource.data.fromUid == request.auth.uid
+        && request.resource.data.status == "pending";
+      allow update: if signedIn()
+        && resource.data.toUid == request.auth.uid
+        && request.resource.data.status in ["accepted", "declined"];
+      allow delete: if signedIn()
+        && (resource.data.fromUid == request.auth.uid
+          || resource.data.toUid == request.auth.uid);
+    }
+
+    // Blocks (Guideline 1.2): only the blocker can read, create or
+    // remove their own blocks. Stored server-side so they survive reinstalls.
+    match /blocks/{uid}/blocked/{otherUid} {
+      allow read, create, delete: if isOwner(uid);
+    }
+
+    // Reports (Guideline 1.2): anyone signed in can file one about someone
+    // else. Nobody can read them from the app; they are reviewed in the
+    // Firebase console, where reports must be acted on within 24 hours.
+    match /reports/{id} {
+      allow read: if false;
+      allow create: if signedIn()
+        && request.resource.data.reporterUid == request.auth.uid;
+    }
+
+    // Courts/fields: anyone signed in can read; any signed-in user can add
+    // one; only the creator can edit it.
+    match /courts/{id} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.createdBy == request.auth.uid;
+      allow update: if signedIn() && resource.data.createdBy == request.auth.uid;
+      allow delete: if false;
+    }
+
+    // Bookings: readable by the booker and by players on the booking;
+    // created by the booker; cancelled only by the booker.
+    match /bookings/{id} {
+      allow read: if signedIn()
+        && (resource.data.bookedBy == request.auth.uid
+          || request.auth.uid in resource.data.playerUids);
+      allow create: if signedIn()
+        && request.resource.data.bookedBy == request.auth.uid;
+      allow update: if signedIn()
+        && (resource.data.bookedBy == request.auth.uid
+          || request.auth.uid in resource.data.playerUids);
+      allow delete: if signedIn() && resource.data.bookedBy == request.auth.uid;
+    }
+  }
+}
