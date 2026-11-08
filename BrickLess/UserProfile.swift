@@ -20,9 +20,10 @@ struct UserProfile: Codable, Identifiable {
 
     static let positions = ["Any", "Point Guard", "Shooting Guard", "Small Forward", "Power Forward", "Center"]
     static let skillLevels = ["Beginner", "Intermediate", "Advanced", "Pro"]
-    // Sports offered at signup. Add more here as the app grows;
-    // the setup screen and the map filter read this one list.
-    static let allSports = ["Basketball", "Soccer", "Football"]
+    // Sports offered at signup. Launch is basketball only; add "Soccer"
+    // then "Football" here to expand, in that order. CourtStore's
+    // launchSports is the matching list for the map.
+    static let allSports = ["Basketball"]
 
     /// Username rules shared by signup and profile editing.
     /// 3-20 chars, letters, numbers and underscores only.

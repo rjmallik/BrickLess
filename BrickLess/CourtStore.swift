@@ -23,16 +23,23 @@ struct Court: Codable, Identifiable, Hashable {
 
 /// Courts come from two places, because no single source has them all:
 /// 1. OpenStreetMap, via the Overpass API: every `leisure=pitch` tagged
-///    sport=basketball, sport=soccer or sport=american_football near the
-///    user. Free, global, and community-mapped, but coverage is uneven:
-///    a field only shows if someone mapped it, and OSM has no hours,
-///    fees or live availability.
+///    with a launch sport near the user. Free, global, and
+///    community-mapped, but coverage is uneven: a court only shows if
+///    someone mapped it, and OSM has no hours, fees or live availability.
 /// 2. Community courts in Firestore (`courts/{id}`), added by players
 ///    in the app. These fill the gaps and can carry booking info.
 ///
 /// Overpass is a shared public service: results are cached per area and
 /// requests are kept small (5 km radius, 100 results max).
 class CourtStore: ObservableObject {
+    /// Launch sports: basketball only. The app starts in the US with one
+    /// sport, then expands in this order: soccer, then American football.
+    /// Add "soccer" and "american_football" here and the map query,
+    /// Add Court and the signup sports picker all pick them up.
+    /// (US-first note: in OSM a bare "football" tag usually means soccer
+    /// outside the US; American football is "american_football".)
+    static let launchSports = ["basketball"]
+
     @Published var courts: [Court] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
@@ -77,11 +84,12 @@ class CourtStore: ObservableObject {
     private func fetchFromOverpass(around coordinate: CLLocationCoordinate2D,
                                    radiusMeters: Int,
                                    completion: @escaping ([Court]) -> Void) {
+        let sportPattern = CourtStore.launchSports.joined(separator: "|")
         let query = """
         [out:json][timeout:25];
         (
-          node["leisure"="pitch"]["sport"~"basketball|soccer|american_football"](around:\(radiusMeters),\(coordinate.latitude),\(coordinate.longitude));
-          way["leisure"="pitch"]["sport"~"basketball|soccer|american_football"](around:\(radiusMeters),\(coordinate.latitude),\(coordinate.longitude));
+          node["leisure"="pitch"]["sport"~"\(sportPattern)"](around:\(radiusMeters),\(coordinate.latitude),\(coordinate.longitude));
+          way["leisure"="pitch"]["sport"~"\(sportPattern)"](around:\(radiusMeters),\(coordinate.latitude),\(coordinate.longitude));
         );
         out center 100;
         """

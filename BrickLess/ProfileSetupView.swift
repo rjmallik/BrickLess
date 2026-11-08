@@ -9,7 +9,7 @@ struct ProfileSetupView: View {
     @State private var position: String = "Any"
     @State private var skillLevel: String = "Beginner"
     @State private var city: String = ""
-    @State private var sports: [String] = []
+    @State private var sports: [String] = ["Basketball"] // launch sport, pre-selected
     @State private var errorMessage: String?
     @State private var usernameTaken: Bool = false
 

@@ -14,17 +14,13 @@ struct CourtMapView: View {
     @State private var cameraPosition = MapCameraPosition.region(
         MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: 47.6062, longitude: -122.3321),
                            span: MKCoordinateSpan(latitudeDelta: 0.08, longitudeDelta: 0.08)))
-    @State private var sportFilter = "All"
     @State private var selectedCourt: Court?
     @State private var showingAddCourt = false
 
+    // Launch is basketball only, so there is no sport filter yet.
+    // When soccer is added, this becomes a filter over the launch sports.
     private var visibleCourts: [Court] {
-        switch sportFilter {
-        case "Basketball": return store.courts.filter { $0.sport == "basketball" || $0.sport == "multi" }
-        case "Soccer": return store.courts.filter { $0.sport == "soccer" || $0.sport == "multi" }
-        case "Football": return store.courts.filter { $0.sport == "football" || $0.sport == "multi" }
-        default: return store.courts
-        }
+        store.courts
     }
 
     /// Pin icon and colour per sport. "figure.american.football" is an
@@ -73,17 +69,14 @@ struct CourtMapView: View {
                 store.fetchCourts(around: location)
             }
 
-            Picker("Sport", selection: $sportFilter) {
-                Text("All").tag("All")
-                Text("Basketball").tag("Basketball")
-                Text("Soccer").tag("Soccer")
-                Text("Football").tag("Football")
-            }
-            .pickerStyle(.segmented)
-            .padding()
-            .background(.ultraThinMaterial)
-            .cornerRadius(10)
-            .padding()
+            // No sport filter at launch: basketball is the only sport.
+            // It comes back when soccer is added.
+            Text("Basketball courts near you")
+                .font(.subheadline.bold())
+                .padding()
+                .background(.ultraThinMaterial)
+                .cornerRadius(10)
+                .padding()
         }
         .navigationTitle("Find Games Near You")
         .navigationBarTitleDisplayMode(.inline)
@@ -159,12 +152,11 @@ private struct AddCourtView: View {
                 .multilineTextAlignment(.center)
             TextField("Court or field name", text: $name)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
-            Picker("Sport", selection: $sport) {
-                Text("Basketball").tag("basketball")
-                Text("Soccer").tag("soccer")
-                Text("Football").tag("football")
-            }
-            .pickerStyle(.segmented)
+            // Launch is basketball only, so the sport is fixed.
+            // It becomes a picker again when soccer is added.
+            Text("Sport: Basketball")
+                .foregroundColor(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
             Toggle("Indoor", isOn: $indoor)
             if let errorMessage { Text(errorMessage).foregroundColor(.red) }
             Button("Add court") {
