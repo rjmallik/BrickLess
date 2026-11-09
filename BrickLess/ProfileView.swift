@@ -1,11 +1,11 @@
 import SwiftUI
 
 // One common support contact for every user (Guideline 1.2 requires
-// published contact information). This must be an inbox RJ actually
-// reads, because reports are meant to be acted on within 24 hours.
-// If support@brickless.app is not set up as a mailbox yet, point this
-// at an inbox that is, before submitting to the App Store.
-private let supportEmail = "support@brickless.app"
+// published contact information). This is RJ's own Gmail, an inbox he
+// actually reads, because reports are meant to be acted on within
+// 24 hours. Chosen Nov 8, 2026: support@brickless.app has no MX
+// records and is not a real inbox, so it was replaced.
+private let supportEmail = "rutujit97872@gmail.com"
 
 /// The player's own profile, opened from Recreational > My Profile.
 struct ProfileView: View {
