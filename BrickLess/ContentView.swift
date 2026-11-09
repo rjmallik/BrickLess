@@ -140,6 +140,22 @@ struct RecreationalView: View {
                                 .cornerRadius(15) // Curved edges
                         }
                     }
+                    HStack(spacing: geometry.size.width * 0.05) {  // Reduced horizontal whitespace
+                        NavigationLink(destination: EventsView(session: session)) {
+                            Text("Games")
+                                .frame(width: geometry.size.width * 0.45, height: geometry.size.width * 0.45)
+                                .background(Color.purple)
+                                .foregroundColor(.white)
+                                .cornerRadius(15) // Curved edges
+                        }
+                        NavigationLink(destination: PlayersView(session: session)) {
+                            Text("Players")
+                                .frame(width: geometry.size.width * 0.45, height: geometry.size.width * 0.45)
+                                .background(Color.orange)
+                                .foregroundColor(.white)
+                                .cornerRadius(15) // Curved edges
+                        }
+                    }
 
                     // Courts near you, right on the hub: the map's results
                     // are shown here, not just behind the Find Games tile.

@@ -54,6 +54,12 @@
 		91B10016F1A2000100C3D001 /* CourtStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B10015F1A2000100C3D001 /* CourtStore.swift */; };
 		91B10014F1A2000100C3D001 /* FriendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B10013F1A2000100C3D001 /* FriendsView.swift */; };
 		91B10012F1A2000100C3D001 /* FriendsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B10011F1A2000100C3D001 /* FriendsStore.swift */; };
+		91B1001EF1A2000100C3D001 /* PlayersStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B1001DF1A2000100C3D001 /* PlayersStore.swift */; };
+		91B10020F1A2000100C3D001 /* PlayersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B1001FF1A2000100C3D001 /* PlayersView.swift */; };
+		91B10022F1A2000100C3D001 /* PlayerDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B10021F1A2000100C3D001 /* PlayerDetailView.swift */; };
+		91B10024F1A2000100C3D001 /* EventStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B10023F1A2000100C3D001 /* EventStore.swift */; };
+		91B10026F1A2000100C3D001 /* EventsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B10025F1A2000100C3D001 /* EventsView.swift */; };
+		91B10028F1A2000100C3D001 /* EventDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B10027F1A2000100C3D001 /* EventDetailView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -78,6 +84,12 @@
 		91B10015F1A2000100C3D001 /* CourtStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourtStore.swift; sourceTree = "<group>"; };
 		91B10013F1A2000100C3D001 /* FriendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsView.swift; sourceTree = "<group>"; };
 		91B10011F1A2000100C3D001 /* FriendsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsStore.swift; sourceTree = "<group>"; };
+		91B1001DF1A2000100C3D001 /* PlayersStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayersStore.swift; sourceTree = "<group>"; };
+		91B1001FF1A2000100C3D001 /* PlayersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayersView.swift; sourceTree = "<group>"; };
+		91B10021F1A2000100C3D001 /* PlayerDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerDetailView.swift; sourceTree = "<group>"; };
+		91B10023F1A2000100C3D001 /* EventStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventStore.swift; sourceTree = "<group>"; };
+		91B10025F1A2000100C3D001 /* EventsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventsView.swift; sourceTree = "<group>"; };
+		91B10027F1A2000100C3D001 /* EventDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventDetailView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -155,6 +167,12 @@
 				91B10015F1A2000100C3D001 /* CourtStore.swift */,
 				91B10013F1A2000100C3D001 /* FriendsView.swift */,
 				91B10011F1A2000100C3D001 /* FriendsStore.swift */,
+				91B1001DF1A2000100C3D001 /* PlayersStore.swift */,
+				91B1001FF1A2000100C3D001 /* PlayersView.swift */,
+				91B10021F1A2000100C3D001 /* PlayerDetailView.swift */,
+				91B10023F1A2000100C3D001 /* EventStore.swift */,
+				91B10025F1A2000100C3D001 /* EventsView.swift */,
+				91B10027F1A2000100C3D001 /* EventDetailView.swift */,
 				910B08142BD6405400D4E602 /* BrickLess.xcdatamodeld */,
 				910B080F2BD6405400D4E602 /* Preview Content */,
 			);
@@ -289,6 +307,12 @@
 				91B10016F1A2000100C3D001 /* CourtStore.swift in Sources */,
 				91B10014F1A2000100C3D001 /* FriendsView.swift in Sources */,
 				91B10012F1A2000100C3D001 /* FriendsStore.swift in Sources */,
+				91B1001EF1A2000100C3D001 /* PlayersStore.swift in Sources */,
+				91B10020F1A2000100C3D001 /* PlayersView.swift in Sources */,
+				91B10022F1A2000100C3D001 /* PlayerDetailView.swift in Sources */,
+				91B10024F1A2000100C3D001 /* EventStore.swift in Sources */,
+				91B10026F1A2000100C3D001 /* EventsView.swift in Sources */,
+				91B10028F1A2000100C3D001 /* EventDetailView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

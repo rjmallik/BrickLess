@@ -15,11 +15,39 @@ struct UserProfile: Codable, Identifiable {
     var city: String              // optional, free text
     var sports: [String] = []     // picked at signup: Basketball, Soccer, Football
     var profileComplete: Bool = false // false until Save Profile is tapped
+    // How good the player is. All three are Optional with a nil default
+    // so older profile documents that lack them still decode: Swift's
+    // synthesized Codable throws on a missing non-optional key.
+    var age: Int? = nil            // years
+    var heightInches: Int? = nil   // total inches, e.g. 74 for 6'2"
+    var highestLevel: String? = nil // highest level officially played
     var createdAt: Date
     var updatedAt: Date
 
     static let positions = ["Any", "Point Guard", "Shooting Guard", "Small Forward", "Power Forward", "Center"]
     static let skillLevels = ["Beginner", "Intermediate", "Advanced", "Pro"]
+
+    /// Highest level officially played, in ascending order. New profiles
+    /// default to Recreational at setup; older profiles may not have one.
+    static let highestLevels = ["Recreational", "Middle School", "High School",
+                                "College", "Semi-Pro", "Professional"]
+    static let defaultHighestLevel = "Recreational"
+
+    /// Age must be 13-100. The app is not directed at children under 13.
+    static let ageRange = 13...100
+
+    /// Feet range for the height picker (3'0" to 8'11").
+    static let heightFeetRange = 3...8
+
+    /// Total inches (e.g. 74) as "6'2\"".
+    static func formattedHeight(_ inches: Int) -> String {
+        "\(inches / 12)'\(inches % 12)\""
+    }
+
+    /// This profile's height as "6'2\"", or nil when not provided.
+    var heightFormatted: String? {
+        heightInches.map { Self.formattedHeight($0) }
+    }
     // Sports offered at signup. Launch is basketball only; add "Soccer"
     // then "Football" here to expand, in that order. CourtStore's
     // launchSports is the matching list for the map.

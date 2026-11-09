@@ -267,6 +267,8 @@ class SessionStore: ObservableObject {
     /// and moves the reservation to the new name.
     func saveProfile(displayName: String, username: String, position: String,
                      skillLevel: String, city: String, sports: [String] = [],
+                     age: Int? = nil, heightInches: Int? = nil,
+                     highestLevel: String = UserProfile.defaultHighestLevel,
                      completion: @escaping (String?) -> Void) {
         guard let user = firebaseUser else {
             completion("You are not signed in.")
@@ -312,6 +314,9 @@ class SessionStore: ObservableObject {
             updated.skillLevel = skillLevel
             updated.city = city.trimmingCharacters(in: .whitespaces)
             updated.sports = sports
+            updated.age = age
+            updated.heightInches = heightInches
+            updated.highestLevel = highestLevel
             updated.profileComplete = true
             updated.updatedAt = Date()
 

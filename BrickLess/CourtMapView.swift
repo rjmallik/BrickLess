@@ -109,6 +109,7 @@ private struct CourtDetailView: View {
     var court: Court
     @ObservedObject var session: SessionStore
     @State private var showingBooking = false
+    @State private var showingEvents = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -128,11 +129,19 @@ private struct CourtDetailView: View {
             Button("Book this court") { showingBooking = true }
                 .foregroundColor(.white).frame(maxWidth: .infinity).padding()
                 .background(Color.blue).cornerRadius(8)
+            Button("Post a game here") { showingEvents = true }
+                .foregroundColor(.white).frame(maxWidth: .infinity).padding()
+                .background(Color.purple).cornerRadius(8)
             Spacer()
         }
         .padding()
         .sheet(isPresented: $showingBooking) {
             BookingView(court: court, session: session)
+        }
+        .sheet(isPresented: $showingEvents) {
+            NavigationView {
+                EventsView(session: session, court: court)
+            }
         }
     }
 }

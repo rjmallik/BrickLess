@@ -10,6 +10,13 @@ struct ProfileSetupView: View {
     @State private var skillLevel: String = "Beginner"
     @State private var city: String = ""
     @State private var sports: [String] = ["Basketball"] // launch sport, pre-selected
+    // How good the player is. Level is required (defaults to Recreational);
+    // age and height are optional but prompted.
+    @State private var ageText: String = ""
+    @State private var includeHeight: Bool = false
+    @State private var heightFeet: Int = 6
+    @State private var heightInches: Int = 0
+    @State private var highestLevel: String = UserProfile.defaultHighestLevel
     @State private var errorMessage: String?
     @State private var usernameTaken: Bool = false
 
@@ -51,6 +58,37 @@ struct ProfileSetupView: View {
             .pickerStyle(.segmented)
             .padding(.horizontal)
 
+            Picker("Highest level played", selection: $highestLevel) {
+                ForEach(UserProfile.highestLevels, id: \.self) { Text($0) }
+            }
+            .pickerStyle(.menu)
+            .padding(.horizontal)
+
+            TextField("Age (optional)", text: $ageText)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .keyboardType(.numberPad)
+                .padding(.horizontal)
+
+            // Height is optional: the toggle reveals the feet/inches pickers.
+            Toggle("Add my height", isOn: $includeHeight)
+                .padding(.horizontal)
+            if includeHeight {
+                HStack {
+                    Picker("Feet", selection: $heightFeet) {
+                        ForEach(UserProfile.heightFeetRange, id: \.self) { Text("\($0) ft") }
+                    }
+                    .pickerStyle(.menu)
+                    Picker("Inches", selection: $heightInches) {
+                        ForEach(0..<12, id: \.self) { Text("\($0) in") }
+                    }
+                    .pickerStyle(.menu)
+                    Spacer()
+                    Text(UserProfile.formattedHeight(heightFeet * 12 + heightInches))
+                        .foregroundColor(.secondary)
+                }
+                .padding(.horizontal)
+            }
+
             // Sports the player plays. Pick as many as apply; more
             // sports can be added to UserProfile.allSports later.
             VStack(alignment: .leading, spacing: 8) {
@@ -89,9 +127,23 @@ struct ProfileSetupView: View {
             } else {
                 Button("Save Profile") {
                     errorMessage = nil
+                    // Age is optional, but when entered it must be a number in range.
+                    let age: Int?
+                    if ageText.trimmingCharacters(in: .whitespaces).isEmpty {
+                        age = nil
+                    } else if let parsed = Int(ageText),
+                              UserProfile.ageRange.contains(parsed) {
+                        age = parsed
+                    } else {
+                        errorMessage = "Enter an age between 13 and 100, or leave it blank."
+                        return
+                    }
+                    let height: Int? = includeHeight ? heightFeet * 12 + heightInches : nil
                     session.saveProfile(displayName: displayName, username: username,
                                         position: position, skillLevel: skillLevel,
-                                        city: city, sports: sports) { error in
+                                        city: city, sports: sports,
+                                        age: age, heightInches: height,
+                                        highestLevel: highestLevel) { error in
                         if error == "That username is already taken." {
                             usernameTaken = true
                         }
@@ -118,6 +170,16 @@ struct ProfileSetupView: View {
                 skillLevel = profile.skillLevel
                 city = profile.city
                 sports = profile.sports
+                if let age = profile.age {
+                    ageText = String(age)
+                }
+                if let inches = profile.heightInches {
+                    includeHeight = true
+                    heightFeet = min(max(inches / 12, UserProfile.heightFeetRange.lowerBound),
+                                     UserProfile.heightFeetRange.upperBound)
+                    heightInches = inches % 12
+                }
+                highestLevel = profile.highestLevel ?? UserProfile.defaultHighestLevel
             }
         }
     }

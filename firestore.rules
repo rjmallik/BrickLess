@@ -10,6 +10,8 @@ rules_version = '2';
 //   friendships/{id}  - friend requests / friendships (see FriendsStore)
 //   courts/{id}       - community-added courts/fields (see CourtStore)
 //   bookings/{id}     - court bookings / game slots
+//   events/{id}       - pickup games posted at a court (see EventStore)
+//   events/{id}/messages/{msgId} - group chat for one game
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -101,6 +103,40 @@ service cloud.firestore {
         && (resource.data.bookedBy == request.auth.uid
           || request.auth.uid in resource.data.playerUids);
       allow delete: if signedIn() && resource.data.bookedBy == request.auth.uid;
+    }
+
+    // Events: pickup games posted at a court. Listings are public to any
+    // signed-in user so anyone can discover and join a game. Only the
+    // creator can edit an event; anyone signed in can join or leave by
+    // changing only playerUids, and the cap is enforced in the rules.
+    // Overlapping events at the same court are allowed: these are pickup
+    // games, not facility reservations.
+    match /events/{eventId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.creatorUid == request.auth.uid
+        && request.resource.data.playerUids == [request.auth.uid]
+        && request.resource.data.maxPlayers >= 2
+        && request.resource.data.endTime > request.resource.data.startTime;
+      allow update: if signedIn()
+        && (resource.data.creatorUid == request.auth.uid
+          || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['playerUids'])
+            && request.resource.data.playerUids.size() <= resource.data.maxPlayers
+            && (request.auth.uid in request.resource.data.playerUids
+              || request.auth.uid in resource.data.playerUids)));
+      allow delete: if signedIn()
+        && resource.data.creatorUid == request.auth.uid;
+    }
+
+    // Group chat: only players who joined the event can read or post.
+    // The get() reads the parent event doc to check playerUids.
+    match /events/{eventId}/messages/{msgId} {
+      allow read: if signedIn()
+        && request.auth.uid in get(/databases/$(database)/documents/events/$(eventId)).data.playerUids;
+      allow create: if signedIn()
+        && request.auth.uid in get(/databases/$(database)/documents/events/$(eventId)).data.playerUids
+        && request.resource.data.senderUid == request.auth.uid;
+      allow update, delete: if false;
     }
   }
 }

@@ -29,6 +29,23 @@ struct ProfileView: View {
                 Text("@\(profile.username)")
                     .foregroundColor(.secondary)
 
+                // How good the player is, as badges. Shown only for the
+                // fields the player provided; older profiles may have none.
+                if profile.age != nil || profile.heightInches != nil || profile.highestLevel != nil {
+                    HStack(spacing: 8) {
+                        if let age = profile.age {
+                            statBadge(value: "\(age)", label: "Age")
+                        }
+                        if let height = profile.heightFormatted {
+                            statBadge(value: height, label: "Height")
+                        }
+                        if let level = profile.highestLevel {
+                            statBadge(value: level, label: "Highest level")
+                        }
+                    }
+                    .padding(.horizontal)
+                }
+
                 VStack(alignment: .leading, spacing: 8) {
                     row("Email", profile.email)
                     row("Position", profile.position)
@@ -106,5 +123,16 @@ struct ProfileView: View {
             Spacer()
             Text(value)
         }
+    }
+
+    private func statBadge(value: String, label: String) -> some View {
+        VStack(spacing: 2) {
+            Text(value).font(.headline)
+            Text(label).font(.caption).foregroundColor(.secondary)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(Color(.systemGray6))
+        .cornerRadius(10)
     }
 }
