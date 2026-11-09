@@ -32,7 +32,7 @@ struct ProfileSetupView: View {
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .padding(.horizontal)
-                .onChange(of: username) { _ in usernameTaken = false }
+                .onChange(of: username) { usernameTaken = false }
             if usernameTaken {
                 Text("That username is already taken.")
                     .foregroundColor(.red)

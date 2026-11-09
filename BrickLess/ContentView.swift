@@ -204,7 +204,10 @@ struct RecreationalView: View {
             locationManager.requestPermission()
             courtStore.fetchCourts(around: CLLocationCoordinate2D(latitude: 47.6062, longitude: -122.3321))
         }
-        .onChange(of: locationManager.location) { _, location in
+        .onReceive(locationManager.$location) { location in
+            // onChange can't watch CLLocationCoordinate2D: it is not
+            // Equatable. onReceive on the @Published value needs no
+            // Equatable conformance.
             guard let location else { return }
             courtStore.fetchCourts(around: location)
         }

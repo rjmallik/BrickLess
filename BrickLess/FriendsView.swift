@@ -94,7 +94,7 @@ struct FriendsView: View {
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .padding(.horizontal)
-                .onChange(of: searchText) { _ in store.searchUsers(query: searchText) }
+                .onChange(of: searchText) { store.searchUsers(query: searchText) }
 
             if store.isLoading {
                 ProgressView().padding()

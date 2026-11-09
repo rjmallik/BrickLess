@@ -62,7 +62,10 @@ struct CourtMapView: View {
                 store.fetchCourts(around: cameraPosition.region?.center
                     ?? CLLocationCoordinate2D(latitude: 47.6062, longitude: -122.3321))
             }
-            .onChange(of: locationManager.location) { _, location in
+            .onReceive(locationManager.$location) { location in
+                // onChange can't watch CLLocationCoordinate2D: it is not
+                // Equatable. onReceive on the @Published value needs no
+                // Equatable conformance.
                 guard let location else { return }
                 cameraPosition = .region(MKCoordinateRegion(
                     center: location, span: MKCoordinateSpan(latitudeDelta: 0.08, longitudeDelta: 0.08)))
