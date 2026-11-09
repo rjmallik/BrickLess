@@ -15,9 +15,35 @@ struct Court: Codable, Identifiable, Hashable {
     var indoor: Bool
     var source: String // "openstreetmap" or "community"
     var createdBy: String?
+    /// ~1 km grid cell this court sits in, e.g. "4760_-12233".
+    /// Community courts are fetched by grid cell, so the map never
+    /// downloads every court in the world as the app grows. OSM courts
+    /// get this computed in code; community courts store it in Firestore.
+    var gridKey: String = ""
 
     var coordinate: CLLocationCoordinate2D {
         CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+    }
+
+    /// Grid cell for a coordinate, matching the Overpass cache key below.
+    /// One cell is ~1.1 km of latitude; longitude cells are narrower
+    /// away from the equator, which is fine for a neighbourhood fetch.
+    static func gridKey(latitude: Double, longitude: Double) -> String {
+        "\(Int(latitude * 100))_\(Int(longitude * 100))"
+    }
+
+    /// This cell plus its 8 neighbours, for a ~3 km fetch around a point.
+    /// Firestore `in` takes up to 30 values; 9 fits.
+    static func nearbyGridKeys(around coordinate: CLLocationCoordinate2D) -> [String] {
+        let lat = Int(coordinate.latitude * 100)
+        let lon = Int(coordinate.longitude * 100)
+        var keys: [String] = []
+        for dLat in -1...1 {
+            for dLon in -1...1 {
+                keys.append("\(lat + dLat)_\(lon + dLon)")
+            }
+        }
+        return keys
     }
 }
 
@@ -56,7 +82,7 @@ class CourtStore: ObservableObject {
 
         fetchFromOverpass(around: coordinate, radiusMeters: radiusMeters) { [weak self] osmCourts in
             guard let self else { return }
-            self.fetchCommunityCourts { community in
+            self.fetchCommunityCourts(around: coordinate) { community in
                 var all = osmCourts + community
                 var seen = Set<String>()
                 all = all.filter { seen.insert($0.id).inserted }
@@ -134,7 +160,8 @@ class CourtStore: ObservableObject {
                     surface: tags["surface"] ?? "",
                     lit: tags["lit"] == "yes",
                     indoor: tags["indoor"] == "yes",
-                    source: "openstreetmap"
+                    source: "openstreetmap",
+                    gridKey: Court.gridKey(latitude: lat, longitude: lon)
                 )
             }
             DispatchQueue.main.async { completion(courts) }
@@ -143,11 +170,18 @@ class CourtStore: ObservableObject {
 
     // MARK: - Community courts (Firestore)
 
-    private func fetchCommunityCourts(completion: @escaping ([Court]) -> Void) {
-        db.collection("courts").limit(to: 200).getDocuments { snapshot, _ in
-            let courts = snapshot?.documents.compactMap { try? $0.data(as: Court.self) } ?? []
-            completion(courts)
-        }
+    /// Only courts in the ~3 km grid around the user, never the whole
+    /// collection. The old version fetched every community court with a
+    /// 200-doc limit, which breaks once courts exist across the country.
+    private func fetchCommunityCourts(around coordinate: CLLocationCoordinate2D,
+                                      completion: @escaping ([Court]) -> Void) {
+        db.collection("courts")
+            .whereField("gridKey", in: Court.nearbyGridKeys(around: coordinate))
+            .limit(to: 200)
+            .getDocuments { snapshot, _ in
+                let courts = snapshot?.documents.compactMap { try? $0.data(as: Court.self) } ?? []
+                completion(courts)
+            }
     }
 
     /// Let a player add a court the map is missing. It shows for everyone.
@@ -157,7 +191,9 @@ class CourtStore: ObservableObject {
         let court = Court(id: UUID().uuidString, name: name, sport: sport,
                           latitude: coordinate.latitude, longitude: coordinate.longitude,
                           surface: surface, lit: false, indoor: indoor,
-                          source: "community", createdBy: createdBy)
+                          source: "community", createdBy: createdBy,
+                          gridKey: Court.gridKey(latitude: coordinate.latitude,
+                                                 longitude: coordinate.longitude))
         do {
             try db.collection("courts").document(court.id).setData(from: court)
             courts.append(court)

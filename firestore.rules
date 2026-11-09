@@ -21,10 +21,14 @@ service cloud.firestore {
     }
 
     // Profiles: anyone signed in can read; only the owner can write.
+    // Delete must be allowed for the owner: in-app Delete Account
+    // (App Store Guideline 5.1.1(v)) removes the profile doc and the
+    // username reservation, so the name can be used again. With delete
+    // forbidden the Auth user was gone but the username stayed reserved.
     match /users/{uid} {
       allow read: if signedIn();
       allow create, update: if isOwner(uid);
-      allow delete: if false;
+      allow delete: if isOwner(uid);
     }
 
     // Username reservations: anyone signed in can read (for login-by-username
@@ -83,12 +87,14 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // Bookings: readable by the booker and by players on the booking;
-    // created by the booker; cancelled only by the booker.
+    // Bookings: any signed-in user can read them. The overlap check in
+    // BookingStore has to read other players' confirmed bookings for the
+    // same court, or it silently sees nothing and double-books. Booking
+    // docs hold only user IDs, court IDs and times (no names or emails),
+    // and pickup games are public by nature, so this is the honest
+    // trade-off. Only the booker can create or cancel a booking.
     match /bookings/{id} {
-      allow read: if signedIn()
-        && (resource.data.bookedBy == request.auth.uid
-          || request.auth.uid in resource.data.playerUids);
+      allow read: if signedIn();
       allow create: if signedIn()
         && request.resource.data.bookedBy == request.auth.uid;
       allow update: if signedIn()
