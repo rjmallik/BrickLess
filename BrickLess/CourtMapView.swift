@@ -72,14 +72,47 @@ struct CourtMapView: View {
                 store.fetchCourts(around: location)
             }
 
-            // No sport filter at launch: basketball is the only sport.
-            // It comes back when soccer is added.
-            Text("Basketball courts near you")
-                .font(.subheadline.bold())
-                .padding()
-                .background(.ultraThinMaterial)
-                .cornerRadius(10)
-                .padding()
+            // Header: what the map is centred on. When location is off
+            // the map falls back to downtown Seattle, and says so instead
+            // of pretending those are the courts near you.
+            VStack(spacing: 4) {
+                Text("Basketball courts near you")
+                    .font(.subheadline.bold())
+                if locationManager.locationDenied && locationManager.location == nil {
+                    Text("Location off — showing downtown Seattle. Enable location in Settings to see courts near you.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                } else if locationManager.location == nil {
+                    Text("Finding your location…")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .padding()
+            .background(.ultraThinMaterial)
+            .cornerRadius(10)
+            .padding()
+
+            // Re-centre on the user after panning away: one fresh fix,
+            // which re-centres the map through the onReceive below.
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    if locationManager.location != nil {
+                        Button {
+                            locationManager.requestLocation()
+                        } label: {
+                            Image(systemName: "location.fill")
+                                .padding(12)
+                                .background(.ultraThinMaterial)
+                                .clipShape(Circle())
+                        }
+                        .padding()
+                    }
+                }
+            }
         }
         .navigationTitle("Find Games Near You")
         .navigationBarTitleDisplayMode(.inline)
@@ -193,6 +226,10 @@ private struct AddCourtView: View {
 /// Shared with the Recreational hub, which shows nearby courts.
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var location: CLLocationCoordinate2D?
+    /// True when the user denied (or is restricted from) location access.
+    /// The map shows a fallback and says so instead of silently
+    /// pretending the fallback is the user's location.
+    @Published var locationDenied = false
     private let manager = CLLocationManager()
 
     override init() {
@@ -206,8 +243,31 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         manager.startUpdatingLocation()
     }
 
+    /// One-shot fix, for the re-center button: delivers one location
+    /// update, then stops on its own.
+    func requestLocation() {
+        manager.requestLocation()
+    }
+
+    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        switch manager.authorizationStatus {
+        case .denied, .restricted:
+            locationDenied = true
+        case .authorizedWhenInUse, .authorizedAlways:
+            locationDenied = false
+            manager.startUpdatingLocation()
+        default:
+            break
+        }
+    }
+
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         location = locations.last?.coordinate
         manager.stopUpdatingLocation()
+    }
+
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        // No fix (e.g. a simulator with no location set): keep the last
+        // known location, or the Seattle fallback shown by the view.
     }
 }
