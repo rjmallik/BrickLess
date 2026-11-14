@@ -22,19 +22,23 @@ struct Court: Codable, Identifiable, Hashable {
     var gridKey: String = ""
 
     /// OSM sport tag string (e.g. "basketball;soccer") to BrickLess
-    /// sport: basketball, soccer, football, or multi. A bare
-    /// "football" tag means soccer in most of the world; American
-    /// football is "american_football".
+    /// sport: one of the launch sports, or "multi" when the pitch serves
+    /// several. A bare "football" tag means soccer in most of the world;
+    /// American football is "american_football".
     static func sport(fromSportsTag tag: String) -> String {
-        let hasBasketball = tag.contains("basketball")
-        let hasSoccer = tag.contains("soccer")
-            || tag.split(separator: ";").contains("football")
-        let hasFootball = tag.contains("american_football")
-        let sportCount = [hasBasketball, hasSoccer, hasFootball].filter { $0 }.count
-        if sportCount > 1 { return "multi" }
-        if hasFootball { return "football" }
-        if hasSoccer { return "soccer" }
-        return "basketball"
+        let parts = tag.split(separator: ";").map(String.init)
+        let hasBasketball = parts.contains("basketball")
+        let hasSoccer = parts.contains("soccer") || parts.contains("football")
+        let hasFootball = parts.contains("american_football")
+        let hasTennis = parts.contains("tennis")
+        let hasPickleball = parts.contains("pickleball")
+        let hasTableTennis = parts.contains("table_tennis")
+        let found = ["basketball": hasBasketball, "soccer": hasSoccer,
+                     "football": hasFootball, "tennis": hasTennis,
+                     "pickleball": hasPickleball, "table_tennis": hasTableTennis]
+            .filter { $0.value }.map { $0.key }
+        if found.count > 1 { return "multi" }
+        return found.first ?? "basketball"
     }
 
     /// Default map label for a sport when OSM has no name for the pitch.
@@ -42,6 +46,10 @@ struct Court: Codable, Identifiable, Hashable {
         switch sport {
         case "soccer": return "Soccer field"
         case "football": return "Football field"
+        case "tennis": return "Tennis court"
+        case "pickleball": return "Pickleball court"
+        case "table_tennis": return "Table tennis table"
+        case "multi": return "Multi-sport pitch"
         default: return "Basketball court"
         }
     }
@@ -83,13 +91,15 @@ struct Court: Codable, Identifiable, Hashable {
 /// Overpass is a shared public service: results are cached per area and
 /// requests are kept small (5 km radius, 100 results max).
 class CourtStore: ObservableObject {
-    /// Launch sports: basketball only. The app starts in the US with one
-    /// sport, then expands in this order: soccer, then American football.
-    /// Add "soccer" and "american_football" here and the map query,
-    /// Add Court and the signup sports picker all pick them up.
+    /// Launch sports: all phases except golf (phase 4). Basketball
+    /// (phase 1), soccer + American football (phase 2), tennis +
+    /// pickleball + table tennis (phase 3). The map query, Add Court and
+    /// the signup sports picker all pick them up from here and from
+    /// UserProfile.allSports (the display-name form of the same list).
     /// (US-first note: in OSM a bare "football" tag usually means soccer
     /// outside the US; American football is "american_football".)
-    static let launchSports = ["basketball"]
+    static let launchSports = ["basketball", "soccer", "american_football",
+                               "tennis", "pickleball", "table_tennis"]
 
     @Published var courts: [Court] = []
     @Published var isLoading = false

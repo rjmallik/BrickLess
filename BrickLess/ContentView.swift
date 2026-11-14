@@ -94,6 +94,9 @@ struct RecreationalView: View {
         switch sport {
         case "soccer": return "Soccer"
         case "football": return "Football"
+        case "tennis": return "Tennis"
+        case "pickleball": return "Pickleball"
+        case "table_tennis": return "Table Tennis"
         case "multi": return "Multi-sport"
         default: return "Basketball"
         }

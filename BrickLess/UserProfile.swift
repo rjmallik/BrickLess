@@ -6,26 +6,69 @@ import FirebaseFirestoreSwift
 /// with `{ uid }` only. The profile and the username reservation hold no
 /// private contact details: the email lives in Firebase Auth only, never
 /// in a Firestore document another user could read.
+/// One sport a player plays, with the positions, skill level and
+/// highest level for that sport only. A player opts in to the sports
+/// they play at profile setup, and each sport gets its own section:
+/// positions are per-sport (a basketball point guard is not a soccer
+/// goalkeeper), the skill level is per-sport, and the highest level
+/// played is per-sport and optional (nil = not specified).
+struct SportProfile: Codable, Equatable {
+    var sport: String              // display name, e.g. "Basketball"
+    var positions: [String]        // positions for this sport, multi-select
+    var skillLevel: String         // Beginner, Intermediate, Advanced, Pro
+    var highestLevel: String?      // highest level played, nil = not specified
+}
+
 struct UserProfile: Codable, Identifiable {
     @DocumentID var id: String?
     var username: String          // display form, e.g. "RJHoops"
     var usernameLower: String     // lowercased, used as the `usernames/` doc id
     var displayName: String
-    var position: String          // Point Guard, Shooting Guard, Small Forward, Power Forward, Center, Any
-    var skillLevel: String        // Beginner, Intermediate, Advanced, Pro
+    /// Primary sport's position and skill level, derived on save from the
+    /// first opted-in sport. They are what the player lists show
+    /// ("@rjhoops · Point Guard"). The full per-sport detail lives in
+    /// sportProfiles below.
+    var position: String          // primary sport's first position, or "Any"
+    var skillLevel: String        // primary sport's skill level
     var city: String              // optional, free text
-    var sports: [String] = []     // picked at signup: Basketball, Soccer, Football
+    /// Sports the player opted in to at profile setup. All phases except
+    /// golf (phase 4): basketball, soccer, American football, tennis,
+    /// pickleball, table tennis.
+    var sports: [String] = []
+    /// Per-sport detail, one entry per opted-in sport. The source of
+    /// truth for positions, skill level and highest level.
+    var sportProfiles: [SportProfile] = []
     var profileComplete: Bool = false // false until Save Profile is tapped
     // How good the player is. All three are Optional with a nil default
     // so older profile documents that lack them still decode: Swift's
     // synthesized Codable throws on a missing non-optional key.
     var age: Int? = nil            // years
     var heightInches: Int? = nil   // total inches, e.g. 74 for 6'2"
+    /// Highest level played across ALL the player's sports (the max of
+    /// the per-sport highest levels). This is what the Players level
+    /// filter queries server-side, so it stays a single top-level field.
+    /// Nil when the player did not specify a highest level for any sport.
     var highestLevel: String? = nil // highest level officially played
     var createdAt: Date
     var updatedAt: Date
 
     static let positions = ["Any", "Point Guard", "Shooting Guard", "Small Forward", "Power Forward", "Center"]
+    static let soccerPositions = ["Any", "Goalkeeper", "Defender", "Midfielder", "Forward"]
+    static let americanFootballPositions = ["Any", "Quarterback", "Running Back", "Wide Receiver", "Tight End", "Offensive Line", "Defensive Line", "Linebacker", "Defensive Back", "Kicker"]
+    /// Racket sports have no field positions: the choice is the format.
+    static let racketPositions = ["Any", "Singles", "Doubles"]
+
+    /// Positions for a sport, by its display name. Basketball keeps the
+    /// original list; racket sports offer Singles / Doubles instead.
+    static func positions(forSport sport: String) -> [String] {
+        switch sport {
+        case "Soccer": return soccerPositions
+        case "American Football": return americanFootballPositions
+        case "Tennis", "Pickleball", "Table Tennis": return racketPositions
+        default: return positions
+        }
+    }
+
     static let skillLevels = ["Beginner", "Intermediate", "Advanced", "Pro"]
 
     /// Highest level officially played, in ascending order. New profiles
@@ -33,6 +76,23 @@ struct UserProfile: Codable, Identifiable {
     static let highestLevels = ["Recreational", "Middle School", "High School",
                                 "College", "Semi-Pro", "Professional"]
     static let defaultHighestLevel = "Recreational"
+
+    /// The player's overall highest level: the max of the per-sport
+    /// highest levels, by the ordering above. Nil when no sport has one
+    /// specified. Pure so it is unit-testable.
+    static func overallHighestLevel(from sportProfiles: [SportProfile]) -> String? {
+        let levels = sportProfiles.compactMap(\.highestLevel)
+        return levels.max { a, b in
+            (highestLevels.firstIndex(of: a) ?? -1) < (highestLevels.firstIndex(of: b) ?? -1)
+        }
+    }
+
+    /// The primary sport profile: the first opted-in sport, in allSports
+    /// order. Its position and skill level are what the top-level
+    /// `position` / `skillLevel` fields carry.
+    static func primarySportProfile(from sportProfiles: [SportProfile]) -> SportProfile? {
+        allSports.compactMap { name in sportProfiles.first { $0.sport == name } }.first
+    }
 
     /// Age must be 13-100. The app is not directed at children under 13.
     static let ageRange = 13...100
@@ -49,10 +109,12 @@ struct UserProfile: Codable, Identifiable {
     var heightFormatted: String? {
         heightInches.map { Self.formattedHeight($0) }
     }
-    // Sports offered at signup. Launch is basketball only; add "Soccer"
-    // then "Football" here to expand, in that order. CourtStore's
-    // launchSports is the matching list for the map.
-    static let allSports = ["Basketball"]
+    // Sports offered at signup. All phases except golf (phase 4):
+    // basketball (phase 1), soccer + American football (phase 2),
+    // tennis + pickleball + table tennis (phase 3). CourtStore's
+    // launchSports is the matching list for the map, in OSM tag form.
+    static let allSports = ["Basketball", "Soccer", "American Football",
+                            "Tennis", "Pickleball", "Table Tennis"]
 
     /// Username rules shared by signup and profile editing.
     /// 3-20 chars, letters, numbers and underscores only.

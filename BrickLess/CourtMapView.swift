@@ -17,8 +17,7 @@ struct CourtMapView: View {
     @State private var selectedCourt: Court?
     @State private var showingAddCourt = false
 
-    // Launch is basketball only, so there is no sport filter yet.
-    // When soccer is added, this becomes a filter over the launch sports.
+    // All launch sports show on the map; there is no sport filter yet.
     private var visibleCourts: [Court] {
         store.courts
     }
@@ -29,6 +28,9 @@ struct CourtMapView: View {
         switch sport {
         case "soccer": return ("soccerball", .green)
         case "football": return ("figure.american.football", .brown)
+        case "tennis": return ("figure.tennis", .green)
+        case "pickleball": return ("sportscourt", .teal)
+        case "table_tennis": return ("figure.table.tennis", .pink)
         case "multi": return ("sportscourt", .purple)
         default: return ("basketball", .orange)
         }
@@ -147,9 +149,7 @@ private struct CourtDetailView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(court.name).font(.title2.bold())
-            Text(court.sport == "soccer" ? "Soccer field"
-                 : court.sport == "football" ? "Football field"
-                 : court.sport == "multi" ? "Multi-sport pitch" : "Basketball court")
+            Text(Court.defaultName(forSport: court.sport))
                 .foregroundColor(.secondary)
             if !court.surface.isEmpty { Text("Surface: \(court.surface)") }
             Text(court.lit ? "Lit for night games" : "Not marked as lit")
@@ -197,17 +197,18 @@ private struct AddCourtView: View {
                 .multilineTextAlignment(.center)
             TextField("Court or field name", text: $name)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
-            // Launch is basketball only, so the sport is fixed.
-            // It becomes a picker again when soccer is added.
-            Text("Sport: Basketball")
-                .foregroundColor(.secondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            Picker("Sport", selection: $sport) {
+                ForEach(CourtStore.launchSports, id: \.self) { tag in
+                    Text(Court.defaultName(forSport: tag)).tag(tag)
+                }
+            }
+            .pickerStyle(.menu)
+            .frame(maxWidth: .infinity, alignment: .leading)
             Toggle("Indoor", isOn: $indoor)
             if let errorMessage { Text(errorMessage).foregroundColor(.red) }
             Button("Add court") {
                 guard let uid = session.firebaseUser?.uid else { return }
-                let defaultName = sport == "soccer" ? "Soccer field"
-                    : sport == "football" ? "Football field" : "Basketball court"
+                let defaultName = Court.defaultName(forSport: sport)
                 store.addCommunityCourt(name: name.isEmpty ? defaultName : name,
                                         sport: sport, coordinate: coordinate,
                                         surface: "", indoor: indoor, createdBy: uid) { error in

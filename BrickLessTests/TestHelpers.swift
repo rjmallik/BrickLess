@@ -14,9 +14,14 @@ func makeProfile(
     highestLevel: String? = nil,
     city: String = "",
     age: Int? = nil,
-    heightInches: Int? = nil
+    heightInches: Int? = nil,
+    sportProfiles: [SportProfile]? = nil
 ) -> UserProfile {
-    UserProfile(
+    // Default per-sport detail mirrors the legacy single position/skill,
+    // so existing tests keep passing without changes.
+    let profiles = sportProfiles ?? [SportProfile(sport: "Basketball", positions: ["Any"],
+                                                  skillLevel: "Beginner", highestLevel: highestLevel)]
+    return UserProfile(
         id: id,
         username: username,
         usernameLower: username.lowercased(),
@@ -25,6 +30,7 @@ func makeProfile(
         skillLevel: "Beginner",
         city: city,
         sports: ["Basketball"],
+        sportProfiles: profiles,
         profileComplete: true,
         age: age,
         heightInches: heightInches,

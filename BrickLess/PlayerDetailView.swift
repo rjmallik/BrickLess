@@ -66,11 +66,29 @@ struct PlayerDetailView: View {
             statRow("Age", profile.age.map(String.init))
             statRow("Height", PlayersStore.heightString(inches: profile.heightInches))
             statRow("Highest level", profile.highestLevel)
-            statRow("Position", profile.position)
-            statRow("Skill level", profile.skillLevel)
             statRow("City", profile.city.isEmpty ? nil : profile.city)
-            statRow("Sports", profile.sports.isEmpty ? nil : profile.sports.joined(separator: ", "))
+            // Per-sport detail: each sport the player opted in to, with
+            // its positions, skill level and highest level. Legacy
+            // profiles (single position/skill) show as one sport section.
+            ForEach(profile.sportProfiles.isEmpty ? [legacySportProfile(of: profile)] : profile.sportProfiles, id: \.sport) { sportProfile in
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(sportProfile.sport).font(.headline)
+                    statRow("Positions", sportProfile.positions.joined(separator: ", "))
+                    statRow("Skill level", sportProfile.skillLevel)
+                    statRow("Highest level", sportProfile.highestLevel)
+                }
+                .padding(.vertical, 4)
+            }
         }
+    }
+
+    /// A legacy profile (single position/skill, before per-sport detail)
+    /// shown as one sport section for its first sport.
+    private func legacySportProfile(of profile: UserProfile) -> SportProfile {
+        SportProfile(sport: profile.sports.first ?? "Basketball",
+                     positions: [profile.position],
+                     skillLevel: profile.skillLevel,
+                     highestLevel: profile.highestLevel)
     }
 
     @ViewBuilder

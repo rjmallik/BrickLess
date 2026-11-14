@@ -641,10 +641,15 @@ class SessionStore: ObservableObject {
 
     /// Saves profile setup / edits. A username change re-checks availability
     /// and moves the reservation to the new name.
-    func saveProfile(displayName: String, username: String, position: String,
-                     skillLevel: String, city: String, sports: [String] = [],
+    /// Saves the profile. Per-sport detail comes in as `sportProfiles`
+    /// (one entry per opted-in sport); the top-level `position` and
+    /// `skillLevel` are derived from the primary sport, and the top-level
+    /// `highestLevel` is the max across sports, so the Players level
+    /// filter keeps working on a single field.
+    func saveProfile(displayName: String, username: String,
+                     city: String, sports: [String] = [],
+                     sportProfiles: [SportProfile] = [],
                      age: Int? = nil, heightInches: Int? = nil,
-                     highestLevel: String = UserProfile.defaultHighestLevel,
                      completion: @escaping (String?) -> Void) {
         guard let user = firebaseUser else {
             completion("You are not signed in.")
@@ -656,6 +661,13 @@ class SessionStore: ObservableObject {
             completion(error)
             return
         }
+
+        // Primary sport (first opted-in sport, in allSports order) carries
+        // the list-row position and skill level; "Any" when nothing picked.
+        let primary = UserProfile.primarySportProfile(from: sportProfiles)
+        let position = primary?.positions.first ?? "Any"
+        let skillLevel = primary?.skillLevel ?? "Beginner"
+        let highestLevel = UserProfile.overallHighestLevel(from: sportProfiles)
 
         isLoading = true
         let oldLower = profile?.usernameLower ?? ""
@@ -671,7 +683,7 @@ class SessionStore: ObservableObject {
                 id: user.uid, username: username, usernameLower: newLower,
                 displayName: displayName,
                 position: position, skillLevel: skillLevel, city: city,
-                sports: sports,
+                sports: sports, sportProfiles: sportProfiles,
                 profileComplete: true,
                 createdAt: Date(), updatedAt: Date())
             updated.username = username
@@ -681,6 +693,7 @@ class SessionStore: ObservableObject {
             updated.skillLevel = skillLevel
             updated.city = city.trimmingCharacters(in: .whitespaces)
             updated.sports = sports
+            updated.sportProfiles = sportProfiles
             updated.age = age
             updated.heightInches = heightInches
             updated.highestLevel = highestLevel

@@ -51,17 +51,32 @@ struct ProfileView: View {
                     // the profile document holds no email, so no other
                     // user can read it.
                     row("Email", session.firebaseUser?.email ?? "")
-                    row("Position", profile.position)
-                    row("Skill", profile.skillLevel)
-                    if !profile.sports.isEmpty {
-                        row("Sports", profile.sports.joined(separator: ", "))
-                    }
                     if !profile.city.isEmpty {
                         row("City", profile.city)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding()
+
+                // Per-sport detail: each sport the player opted in to,
+                // with its positions, skill level and highest level.
+                // Falls back to the primary position/skill for legacy
+                // profiles that predate per-sport detail.
+                ForEach(profile.sportProfiles.isEmpty ? [legacySportProfile(of: profile)] : profile.sportProfiles, id: \.sport) { sportProfile in
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(sportProfile.sport).font(.headline)
+                        row("Positions", sportProfile.positions.joined(separator: ", "))
+                        row("Skill level", sportProfile.skillLevel)
+                        if let level = sportProfile.highestLevel {
+                            row("Highest level", level)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding()
+                    .background(Color(.systemGray6))
+                    .cornerRadius(12)
+                    .padding(.horizontal)
+                }
 
                 Button("Edit Profile") { showingSetup = true }
                     .foregroundColor(.white)
@@ -118,6 +133,16 @@ struct ProfileView: View {
             Text("This permanently deletes your profile, username and account. This cannot be undone.")
         }
         .navigationTitle("My Profile")
+    }
+
+    /// A legacy profile (single position/skill, before per-sport detail)
+    /// shown as one sport section for its first sport, so old accounts
+    /// keep displaying until they re-save.
+    private func legacySportProfile(of profile: UserProfile) -> SportProfile {
+        SportProfile(sport: profile.sports.first ?? "Basketball",
+                     positions: [profile.position],
+                     skillLevel: profile.skillLevel,
+                     highestLevel: profile.highestLevel)
     }
 
     private func row(_ label: String, _ value: String) -> some View {
