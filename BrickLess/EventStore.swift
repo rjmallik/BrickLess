@@ -115,6 +115,37 @@ class EventStore: ObservableObject {
         events.filter { $0.startTime > now }.sorted { $0.startTime < $1.startTime }
     }
 
+    /// Max writes in one Firestore batch. Deleting a game's chat has
+    /// to stay under it, so big chats are deleted in batches of this
+    /// size (see deleteEvent).
+    static let maxBatchWrites = 500
+
+    /// Splits message document IDs into batches of at most
+    /// `maxBatchWrites`, in order. Pure, so the chunking rule is
+    /// unit-tested without touching Firestore.
+    static func messageDeletionBatches(_ messageIds: [String]) -> [[String]] {
+        guard !messageIds.isEmpty else { return [] }
+        return stride(from: 0, to: messageIds.count, by: maxBatchWrites)
+            .map { Array(messageIds[$0..<min($0 + maxBatchWrites, messageIds.count)]) }
+    }
+
+    /// One step of deleting a game. Message batches always come before
+    /// the event doc: the messages rule only lets the creator delete
+    /// while the parent event still exists, so the chat has to go first.
+    enum GameDeletionStep: Equatable {
+        case deleteMessageBatch(batchIndex: Int)
+        case deleteEventDocument
+    }
+
+    /// The steps of deleting a game, in order: one step per batch of
+    /// chat messages, then the event doc itself. Pure description of
+    /// the flow deleteEvent runs, so the ordering rule is unit-tested.
+    static func deletionSteps(messageCount: Int) -> [GameDeletionStep] {
+        let batchCount = (messageCount + maxBatchWrites - 1) / maxBatchWrites
+        return (0..<batchCount).map { .deleteMessageBatch(batchIndex: $0) }
+            + [.deleteEventDocument]
+    }
+
     /// Live list of future events, soonest first, capped at 50.
     func startListeningUpcoming() {
         listeners.append(
@@ -276,17 +307,64 @@ class EventStore: ObservableObject {
         }
     }
 
-    /// Only the creator can delete (enforced in the rules too). The chat
-    /// messages under the event are left behind; they are only readable
-    /// by players of an event that no longer exists.
+    /// Only the creator can delete (enforced in the rules too). The
+    /// chat messages go first, in batches of at most 500 (the
+    /// Firestore batch limit), then the event doc: deleting the event
+    /// alone used to orphan the chat, leaving messages readable only
+    /// by players of a game that no longer exists. The messages rule
+    /// only lets the creator delete while the parent event still
+    /// exists, so the order matters. If any step fails, completion
+    /// fires once with a friendly error and the event doc is left
+    /// in place (a failed message batch stops the delete entirely).
     func deleteEvent(_ event: GameEvent, completion: @escaping (String?) -> Void) {
         guard let id = event.id else {
             completion("That game no longer exists.")
             return
         }
-        db.collection("events").document(id).delete { error in
-            completion(error.map(SessionStore.friendlyError))
+        deleteMessages(eventId: id) { [weak self] error in
+            guard let self else { return }
+            if let error {
+                completion(SessionStore.friendlyError(error))
+                return
+            }
+            self.db.collection("events").document(id).delete { error in
+                completion(error.map(SessionStore.friendlyError))
+            }
         }
+    }
+
+    /// Deletes every message in `events/{eventId}/messages`, one batch
+    /// at a time. Each round fetches up to `maxBatchWrites` messages
+    /// and deletes them in a single batch, then repeats until a fetch
+    /// comes back empty — so a chat of any size is fully deleted, and
+    /// a message posted mid-delete is caught by the next round instead
+    /// of being orphaned. Completion fires exactly once, with the first
+    /// error if any step fails.
+    private func deleteMessages(eventId: String, completion: @escaping (Error?) -> Void) {
+        db.collection("events").document(eventId).collection("messages")
+            .limit(to: Self.maxBatchWrites)
+            .getDocuments { [weak self] snapshot, error in
+                guard let self else { return }
+                if let error {
+                    completion(error)
+                    return
+                }
+                let docs = snapshot?.documents ?? []
+                guard !docs.isEmpty else {
+                    completion(nil)
+                    return
+                }
+                let batch = self.db.batch()
+                docs.forEach { batch.deleteDocument($0.reference) }
+                batch.commit { [weak self] error in
+                    guard let self else { return }
+                    if let error {
+                        completion(error)
+                        return
+                    }
+                    self.deleteMessages(eventId: eventId, completion: completion)
+                }
+            }
     }
 
     // MARK: - Players and chat

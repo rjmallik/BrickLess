@@ -66,6 +66,7 @@
 		701319E55C493CD4ADAC004D /* DeleteAccountTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89AF132552F589117EE12377 /* DeleteAccountTests.swift */; };
 		0E969DB0BDE74E6A14B4067D /* EventTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8867DBCF971D9C6DD212E1EF /* EventTests.swift */; };
 		4755038AEEC7F1BE8394F095 /* FriendsAndPlayersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A59CC56B946E54D18372B661 /* FriendsAndPlayersTests.swift */; };
+		F0CA82CC363D0D81BD3E821D /* GameDeletionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E1312D33C3DAF8C2AC20729 /* GameDeletionTests.swift */; };
 		8BC34E401FDF4FD6AC73D938 /* PlayersFilteringTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A47C69329801475DB07CA8AC /* PlayersFilteringTests.swift */; };
 		0565BC340C7C91ADFDD64D82 /* SignupValidationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4882628EE133C10B6511907F /* SignupValidationTests.swift */; };
 		C206159DAF9695B1C892C9EF /* TestHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17DC514EFAE58F30E8CA9ACE /* TestHelpers.swift */; };
@@ -117,6 +118,7 @@
 		89AF132552F589117EE12377 /* DeleteAccountTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountTests.swift; sourceTree = "<group>"; };
 		8867DBCF971D9C6DD212E1EF /* EventTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventTests.swift; sourceTree = "<group>"; };
 		A59CC56B946E54D18372B661 /* FriendsAndPlayersTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsAndPlayersTests.swift; sourceTree = "<group>"; };
+		2E1312D33C3DAF8C2AC20729 /* GameDeletionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameDeletionTests.swift; sourceTree = "<group>"; };
 		A47C69329801475DB07CA8AC /* PlayersFilteringTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayersFilteringTests.swift; sourceTree = "<group>"; };
 		4882628EE133C10B6511907F /* SignupValidationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignupValidationTests.swift; sourceTree = "<group>"; };
 		17DC514EFAE58F30E8CA9ACE /* TestHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestHelpers.swift; sourceTree = "<group>"; };
@@ -238,6 +240,7 @@
 				89AF132552F589117EE12377 /* DeleteAccountTests.swift */,
 				8867DBCF971D9C6DD212E1EF /* EventTests.swift */,
 				A59CC56B946E54D18372B661 /* FriendsAndPlayersTests.swift */,
+				2E1312D33C3DAF8C2AC20729 /* GameDeletionTests.swift */,
 				A47C69329801475DB07CA8AC /* PlayersFilteringTests.swift */,
 				4882628EE133C10B6511907F /* SignupValidationTests.swift */,
 				17DC514EFAE58F30E8CA9ACE /* TestHelpers.swift */,
@@ -423,6 +426,7 @@
 				701319E55C493CD4ADAC004D /* DeleteAccountTests.swift in Sources */,
 				0E969DB0BDE74E6A14B4067D /* EventTests.swift in Sources */,
 				4755038AEEC7F1BE8394F095 /* FriendsAndPlayersTests.swift in Sources */,
+				F0CA82CC363D0D81BD3E821D /* GameDeletionTests.swift in Sources */,
 				8BC34E401FDF4FD6AC73D938 /* PlayersFilteringTests.swift in Sources */,
 				0565BC340C7C91ADFDD64D82 /* SignupValidationTests.swift in Sources */,
 				C206159DAF9695B1C892C9EF /* TestHelpers.swift in Sources */,
