@@ -2,6 +2,7 @@ import Foundation
 import Combine
 import FirebaseAuth
 import FirebaseFirestore
+import FirebaseFirestoreSwift
 
 /// A booking is a reserved slot at a court, or a pickup game at one.
 /// `bookings/{id}`: { courtId, courtName, sport, bookedBy, playerUids,

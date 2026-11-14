@@ -1,11 +1,17 @@
 import SwiftUI
 import Firebase
+import FirebaseAppCheck
 
 @main
 struct BrickLessApp: App {
     let persistenceController = PersistenceController.shared
 
     init() {
+        // App Check is not used by the app, and its default DeviceCheck
+        // provider crashes at launch in the 10.x SDK (FBLPromise
+        // expirationDate unrecognized selector in the periodic token
+        // refresh). Disable it before configuring Firebase.
+        AppCheck.setAppCheckProviderFactory(nil)
         FirebaseApp.configure()
     }
 

@@ -2,6 +2,7 @@ import Foundation
 import Combine
 import FirebaseAuth
 import FirebaseFirestore
+import FirebaseFirestoreSwift
 
 /// Browse and discover players, not just people you already know.
 ///
