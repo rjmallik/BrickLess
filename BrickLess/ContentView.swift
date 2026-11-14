@@ -29,6 +29,7 @@ struct ContentView: View {
                         LoginView(session: session, errorMessage: $session.loginError)
                     }
                 }
+                .appBackground()
                 .navigationBarHidden(true) // Hide navigation bar
             }
         }

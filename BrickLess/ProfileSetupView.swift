@@ -1,6 +1,7 @@
 import SwiftUI
 import PhotosUI
 import UIKit
+import MapKit
 
 /// Step 2 of account setup: the player profile.
 /// Shown to every new account, and reachable later from My Profile > Edit.
@@ -13,6 +14,7 @@ import UIKit
 /// not specified) and goes up to Professional.
 struct ProfileSetupView: View {
     @ObservedObject var session: SessionStore
+    @Environment(\.dismiss) private var dismiss
     @State private var displayName: String = ""
     @State private var username: String = ""
     @State private var city: String = ""
@@ -35,6 +37,11 @@ struct ProfileSetupView: View {
     @State private var photoURL: String?
     @State private var newPhotoData: Data?
     @State private var photoPickerItem: PhotosPickerItem?
+    /// City autofill: real US place suggestions as the player types
+    /// (MapKit, restricted to the United States), plus the suggestion
+    /// just tapped, so picking one does not re-trigger suggestions.
+    @StateObject private var locationCompleter = LocationSearchCompleter()
+    @State private var selectedCitySuggestion: String?
     /// Location permission, offered at signup so the map works the first
     /// time the user opens it. Skippable by design: the system prompt
     /// fires at most once, and Save Profile below always works, with or
@@ -155,9 +162,44 @@ struct ProfileSetupView: View {
                     .padding(.horizontal)
                 }
 
-                TextField("City (optional)", text: $city)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .padding(.horizontal)
+                // City, with autofill from real US places: as the player
+                // types, MapKit suggests certified US locations (the app
+                // is US-only); tapping one fills the field. The field
+                // stays free text — suggestions are a convenience, and
+                // when MapKit has nothing (e.g. offline) the bundled
+                // major-US-cities list fills in instead.
+                VStack(alignment: .leading, spacing: 4) {
+                    TextField("City (optional)", text: $city)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .autocorrectionDisabled()
+                        .onChange(of: city) { _, newValue in
+                            if newValue == selectedCitySuggestion {
+                                locationCompleter.suggestions = []
+                                return
+                            }
+                            selectedCitySuggestion = nil
+                            locationCompleter.update(query: newValue)
+                        }
+                    if !locationCompleter.suggestions.isEmpty {
+                        VStack(alignment: .leading, spacing: 0) {
+                            ForEach(locationCompleter.suggestions, id: \.self) { suggestion in
+                                Button {
+                                    selectCitySuggestion(suggestion)
+                                } label: {
+                                    Text(suggestion)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                }
+                                .padding(.vertical, 8)
+                                .padding(.horizontal, 12)
+                                Divider()
+                            }
+                        }
+                        .background(Color(.systemBackground))
+                        .cornerRadius(8)
+                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color(.systemGray4)))
+                    }
+                }
+                .padding(.horizontal)
 
                 // Location, offered here at signup so the map works the first
                 // time it opens. Never required: Save Profile below always
@@ -210,6 +252,7 @@ struct ProfileSetupView: View {
             }
             .padding(.vertical)
         }
+        .appBackground()
         .onAppear {
             // Pre-fill from the account created in step 1.
             if let profile = session.profile {
@@ -324,7 +367,24 @@ struct ProfileSetupView: View {
             if error == nil, hadPhoto, photoURL == nil {
                 session.deleteProfilePhoto()
             }
+            // Editing from My Profile: close the edit sheet on a
+            // successful save and go back to the profile. The
+            // first-time setup flow is unaffected: dismiss is a
+            // no-op when the view was not presented as a sheet,
+            // and the needsProfileSetup gate flips to Home.
+            if error == nil {
+                dismiss()
+            }
         }
+    }
+
+    /// A tapped city suggestion fills the field. Remembering it here
+    /// stops the field's onChange from re-querying MapKit for the
+    /// text that was just picked.
+    private func selectCitySuggestion(_ suggestion: String) {
+        selectedCitySuggestion = suggestion
+        city = suggestion
+        locationCompleter.suggestions = []
     }
 
     /// Opt in or out of a sport. Opting in starts a fresh draft
@@ -431,5 +491,112 @@ private struct SportSetupSection: View {
             positions.append(position)
         }
         draft.positions = positions.isEmpty ? ["Any"] : positions
+    }
+}
+
+/// City autofill for profile setup. The app is US-only, so suggestions
+/// are real US places: MapKit's completer first (restricted to the
+/// United States by region), with a bundled list of major US cities
+/// as the fallback when MapKit has nothing (e.g. offline). The pure
+/// helpers are unit-tested in LocationSetupTests.
+enum LocationSuggestions {
+    /// "City, ST" for a MapKit completion: the title plus the first
+    /// part of the subtitle (usually the state, e.g. "California, United
+    /// States" -> "California"). A bare title stays bare.
+    static func displayText(title: String, subtitle: String) -> String {
+        let title = title.trimmingCharacters(in: .whitespaces)
+        let subtitle = subtitle.trimmingCharacters(in: .whitespaces)
+        guard !subtitle.isEmpty else { return title }
+        let first = subtitle.split(separator: ",", maxSplits: 1).first
+            .map { $0.trimmingCharacters(in: .whitespaces) } ?? subtitle
+        return "\(title), \(first)"
+    }
+
+    /// Prefix matches on the city name first ("san" -> San Francisco,
+    /// San Diego, ...), then substring matches, alphabetically, capped
+    /// at `limit`. Case-insensitive; a blank query matches nothing.
+    /// Pure so the unit tests cover it without MapKit.
+    static func matchingCities(query: String, from cities: [String] = majorUSCities,
+                               limit: Int = 5) -> [String] {
+        let query = query.trimmingCharacters(in: .whitespaces).lowercased()
+        guard !query.isEmpty else { return [] }
+        let prefix = cities.filter {
+            $0.split(separator: ",", maxSplits: 1).first
+                .map { $0.trimmingCharacters(in: .whitespaces).lowercased().hasPrefix(query) } ?? false
+        }
+        let rest = cities.filter {
+            !prefix.contains($0) && $0.lowercased().contains(query)
+        }
+        return Array((prefix.sorted() + rest.sorted()).prefix(limit))
+    }
+
+    /// Major US cities ("City, ST"), the offline fallback for city
+    /// autofill and the list the unit tests match against.
+    static let majorUSCities = [
+        "New York, NY", "Los Angeles, CA", "Chicago, IL", "Houston, TX",
+        "Phoenix, AZ", "Philadelphia, PA", "San Antonio, TX", "San Diego, CA",
+        "Dallas, TX", "San Jose, CA", "Austin, TX", "Jacksonville, FL",
+        "Fort Worth, TX", "Columbus, OH", "Charlotte, NC", "San Francisco, CA",
+        "Indianapolis, IN", "Seattle, WA", "Denver, CO", "Oklahoma City, OK",
+        "Nashville, TN", "Washington, DC", "El Paso, TX", "Las Vegas, NV",
+        "Boston, MA", "Detroit, MI", "Portland, OR", "Louisville, KY",
+        "Memphis, TN", "Baltimore, MD", "Milwaukee, WI", "Albuquerque, NM",
+        "Tucson, AZ", "Mesa, AZ", "Sacramento, CA", "Atlanta, GA",
+        "Kansas City, MO", "Colorado Springs, CO", "Miami, FL", "Raleigh, NC",
+        "Omaha, NE", "Long Beach, CA", "Virginia Beach, VA", "Oakland, CA",
+        "Minneapolis, MN", "Bakersfield, CA", "Tulsa, OK", "Tampa, FL",
+        "Arlington, TX", "New Orleans, LA", "Wichita, KS", "Cleveland, OH",
+        "Irvine, CA", "Cincinnati, OH", "Newark, NJ", "St. Louis, MO",
+        "Pittsburgh, PA", "Greensboro, NC", "St. Paul, MN", "Anchorage, AK",
+        "Honolulu, HI", "Salt Lake City, UT", "Boise, ID", "Richmond, VA",
+        "Spokane, WA", "Tacoma, WA", "Santa Cruz, CA", "Berkeley, CA",
+        "Palo Alto, CA", "Sunnyvale, CA", "Fremont, CA", "Santa Clara, CA",
+    ]
+}
+
+/// Observable wrapper around MKLocalSearchCompleter, restricted to the
+/// United States: the completer's region is a US bounding region and
+/// the result type is addresses, so suggestions are real US places.
+/// When the completer has no results (e.g. offline), the bundled
+/// major-US-cities list fills in instead, so the field always
+/// suggests certified US locations.
+final class LocationSearchCompleter: NSObject, ObservableObject, MKLocalSearchCompleterDelegate {
+    @Published var suggestions: [String] = []
+    private let completer = MKLocalSearchCompleter()
+
+    override init() {
+        super.init()
+        completer.delegate = self
+        completer.resultTypes = .address
+        // Bias completions to the United States (contiguous-US
+        // bounding region). The app is US-only.
+        completer.region = MKCoordinateRegion(
+            center: CLLocationCoordinate2D(latitude: 39.8283, longitude: -98.5795),
+            span: MKCoordinateSpan(latitudeDelta: 25, longitudeDelta: 60))
+    }
+
+    /// Feed the field's text in; suggestions publish asynchronously.
+    /// Under two characters there is nothing useful to suggest.
+    func update(query: String) {
+        let trimmed = query.trimmingCharacters(in: .whitespaces)
+        guard trimmed.count >= 2 else {
+            suggestions = []
+            return
+        }
+        completer.queryFragment = trimmed
+    }
+
+    func completerDidUpdateResults(_ completer: MKLocalSearchCompleter) {
+        var seen = Set<String>()
+        let mapped = completer.results.prefix(5).map {
+            LocationSuggestions.displayText(title: $0.title, subtitle: $0.subtitle)
+        }.filter { seen.insert($0).inserted }
+        suggestions = mapped.isEmpty
+            ? LocationSuggestions.matchingCities(query: completer.queryFragment)
+            : mapped
+    }
+
+    func completer(_ completer: MKLocalSearchCompleter, didFailWithError error: Error) {
+        suggestions = LocationSuggestions.matchingCities(query: completer.queryFragment)
     }
 }

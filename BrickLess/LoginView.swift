@@ -70,6 +70,7 @@ struct LoginView: View {
         } message: {
             Text(resetMessage ?? "We will email you a link to reset your password.")
         }
+        .appBackground()
     }
 }
 

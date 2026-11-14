@@ -32,6 +32,8 @@ struct ChatsView: View {
                 }
             }
         }
+        .scrollContentBackground(.hidden)
+        .appBackground()
         .navigationTitle("Chats")
         .onAppear {
             store.startListeningMyEvents()

@@ -141,6 +141,39 @@ enum SportTabs {
     }
 }
 
+/// Bright, glamorous background wash for every screen: a soft
+/// sunrise gradient (warm white -> peach -> pale sky) that reads
+/// noticeably brighter and more polished than plain white, while
+/// staying light so text stays readable. In dark mode it falls
+/// back to a faint brand-orange tint over the system background
+/// so it never goes muddy.
+struct AppBackground: View {
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        LinearGradient(
+            colors: colorScheme == .dark
+                ? [PlayMatchColors.brand.opacity(0.18),
+                   PlayMatchColors.brand.opacity(0.06),
+                   Color(.systemBackground)]
+                : [Color(red: 1.00, green: 0.99, blue: 0.96),
+                   Color(red: 1.00, green: 0.93, blue: 0.85),
+                   Color(red: 0.97, green: 0.95, blue: 1.00)],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing)
+            .ignoresSafeArea()
+    }
+}
+
+extension View {
+    /// The shared bright PlayMatch background. Put it on the root
+    /// of a screen; for Lists also add `.scrollContentBackground(.hidden)`
+    /// so the gradient shows through behind the rows.
+    func appBackground() -> some View {
+        background { AppBackground() }
+    }
+}
+
 /// Horizontal scrollable sport chips: All + the six launch sports.
 /// The selected chip is filled; the rest are quiet. Used at the top
 /// of the Location and Events tabs so each sport has its own view.

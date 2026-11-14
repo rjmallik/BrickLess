@@ -163,7 +163,6 @@ private struct CourtDetailView: View {
     var court: Court
     @ObservedObject var session: SessionStore
     @State private var showingBooking = false
-    @State private var showingEvents = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -203,28 +202,19 @@ private struct CourtDetailView: View {
                     .foregroundColor(.white).frame(maxWidth: .infinity).padding()
                     .background(PlayMatchColors.brand).cornerRadius(8)
             }
-            // In-app time reservation for a pickup game (free, no
-            // payment). Separate from paid venue rental, so it is
-            // labelled as a reservation, not a booking.
-            Button("Reserve a time") { showingBooking = true }
+            // Post a game at this venue (free, no payment): pick a
+            // time for a pickup game here. Separate from paid venue
+            // rental above, so it is labelled as posting a game,
+            // not a booking.
+            Button("Post a game") { showingBooking = true }
                 .foregroundColor(.white).frame(maxWidth: .infinity).padding()
                 .background(SportTabs.pinStyle(forTag: court.sport).color).cornerRadius(8)
-            Button("Post a game here") { showingEvents = true }
-                .foregroundColor(SportTabs.pinStyle(forTag: court.sport).color)
-                .frame(maxWidth: .infinity).padding()
-                .overlay(RoundedRectangle(cornerRadius: 8)
-                    .stroke(SportTabs.pinStyle(forTag: court.sport).color, lineWidth: 1.5))
-                .cornerRadius(8)
             Spacer()
         }
         .padding()
+        .appBackground()
         .sheet(isPresented: $showingBooking) {
             BookingView(court: court, session: session)
-        }
-        .sheet(isPresented: $showingEvents) {
-            NavigationView {
-                EventsView(session: session, court: court)
-            }
         }
     }
 }

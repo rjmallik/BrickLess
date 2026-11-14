@@ -69,5 +69,6 @@ struct RegisterView: View {
             }
         }
         .padding(.vertical)
+        .appBackground()
     }
 }

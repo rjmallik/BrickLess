@@ -35,6 +35,7 @@ struct PlayersView: View {
             }
             Spacer()
         }
+        .appBackground()
         .navigationTitle("Players")
         .onAppear {
             if store.players.isEmpty && store.searchResults.isEmpty {
@@ -78,6 +79,7 @@ struct PlayersView: View {
             }
         }
         .listStyle(.plain)
+        .scrollContentBackground(.hidden)
         .refreshable { store.refresh() }
         .overlay(alignment: .bottom) {
             if store.isLoading && !store.visiblePlayers.isEmpty {

@@ -90,7 +90,9 @@ struct EventsView: View {
                     }
                 }
             }
+            .scrollContentBackground(.hidden)
         }
+        .appBackground()
         .navigationTitle("Games")
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {

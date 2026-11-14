@@ -127,6 +127,7 @@ struct ProfileView: View {
             Text("This permanently deletes your profile, username and account. This cannot be undone.")
         }
         .navigationTitle("My Profile")
+        .appBackground()
     }
 
     /// A legacy profile (single position/skill, before per-sport detail)

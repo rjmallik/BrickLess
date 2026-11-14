@@ -32,6 +32,7 @@ struct FriendsView: View {
             }
             Spacer()
         }
+        .appBackground()
         .navigationTitle("Friends")
         .onAppear { store.startListening() }
         .alert("Report user", isPresented: Binding(
@@ -80,6 +81,7 @@ struct FriendsView: View {
                         Button("Report") { reportTarget = friend }
                     }
                 }
+                .scrollContentBackground(.hidden)
                 .listStyle(.plain)
             }
         }
@@ -118,6 +120,7 @@ struct FriendsView: View {
                     Button("Report") { reportTarget = profile }
                 }
             }
+            .scrollContentBackground(.hidden)
             .listStyle(.plain)
         }
     }
@@ -154,6 +157,7 @@ struct FriendsView: View {
                 }
             }
         }
+        .scrollContentBackground(.hidden)
         .listStyle(.plain)
     }
 }
