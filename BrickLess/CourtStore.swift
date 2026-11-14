@@ -341,8 +341,7 @@ class CourtStore: ObservableObject {
         }
 
         URLSession.shared.dataTask(with: request) { data, response, _ in
-            let statusOK = (response as? HTTPURLResponse)?.statusCode
-                .map { (200..<300).contains($0) } ?? false
+            let statusOK = (response as? HTTPURLResponse).map { (200..<300).contains($0.statusCode) } ?? false
             if statusOK, let data,
                let decoded = try? JSONDecoder().decode(OverpassResponse.self, from: data) {
                 let courts: [Court] = decoded.elements.compactMap { element in
