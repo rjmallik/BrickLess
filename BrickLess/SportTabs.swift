@@ -150,15 +150,26 @@ enum SportTabs {
 struct AppBackground: View {
     @Environment(\.colorScheme) private var colorScheme
 
+    /// The bright sunrise gradient in light mode: warm white ->
+    /// peach -> pale sky. Pure data, so the unit tests pin the
+    /// colours down.
+    static let lightGradientColors: [Color] = [
+        Color(red: 1.00, green: 0.99, blue: 0.96),
+        Color(red: 1.00, green: 0.93, blue: 0.85),
+        Color(red: 0.97, green: 0.95, blue: 1.00),
+    ]
+
+    /// Dark mode: a faint brand-orange tint over the system
+    /// background, so it never goes muddy.
+    static let darkGradientColors: [Color] = [
+        PlayMatchColors.brand.opacity(0.18),
+        PlayMatchColors.brand.opacity(0.06),
+        Color(.systemBackground),
+    ]
+
     var body: some View {
         LinearGradient(
-            colors: colorScheme == .dark
-                ? [PlayMatchColors.brand.opacity(0.18),
-                   PlayMatchColors.brand.opacity(0.06),
-                   Color(.systemBackground)]
-                : [Color(red: 1.00, green: 0.99, blue: 0.96),
-                   Color(red: 1.00, green: 0.93, blue: 0.85),
-                   Color(red: 0.97, green: 0.95, blue: 1.00)],
+            colors: colorScheme == .dark ? Self.darkGradientColors : Self.lightGradientColors,
             startPoint: .topLeading,
             endPoint: .bottomTrailing)
             .ignoresSafeArea()

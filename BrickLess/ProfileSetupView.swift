@@ -353,6 +353,13 @@ struct ProfileSetupView: View {
         }
     }
 
+    /// Dismiss-on-save rule: the edit sheet closes only when the
+    /// save succeeded (no error). A failed save stays open so the
+    /// player can fix the problem and retry. Pure.
+    static func shouldDismissAfterSave(error: String?) -> Bool {
+        error == nil
+    }
+
     /// The Firestore save itself, shared by the with-photo and
     /// without-photo paths. A removed photo's stored file is deleted
     /// once the save succeeds and the profile no longer points at it.
@@ -375,7 +382,7 @@ struct ProfileSetupView: View {
             // first-time setup flow is unaffected: dismiss is a
             // no-op when the view was not presented as a sheet,
             // and the needsProfileSetup gate flips to Home.
-            if error == nil {
+            if Self.shouldDismissAfterSave(error: error) {
                 dismiss()
             }
         }

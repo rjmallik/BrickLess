@@ -174,9 +174,16 @@ class CourtStore: ObservableObject {
     private let db = Firestore.firestore()
     private var lastFetchKey = ""
 
+    /// Venue search window: 25 km radius, 200 Overpass results max.
+    /// Wide enough to cover a metro area, not just the immediate
+    /// neighbourhood, so players see venues across town. Named
+    /// constants so the unit tests pin the window down.
+    static let venueSearchRadiusMeters = 25_000
+    static let overpassResultLimit = 200
+
     /// Wide enough to cover a metro area (25 km), not just the
     /// immediate neighbourhood, so players see venues across town.
-    func fetchCourts(around coordinate: CLLocationCoordinate2D, radiusMeters: Int = 25000) {
+    func fetchCourts(around coordinate: CLLocationCoordinate2D, radiusMeters: Int = venueSearchRadiusMeters) {
         // Cache per ~1 km grid cell so panning the map does not re-query.
         let key = "\(Int(coordinate.latitude * 100))_\(Int(coordinate.longitude * 100))"
         guard key != lastFetchKey else { return }
@@ -220,7 +227,7 @@ class CourtStore: ObservableObject {
           node["leisure"="pitch"]["sport"~"\(sportPattern)"](around:\(radiusMeters),\(coordinate.latitude),\(coordinate.longitude));
           way["leisure"="pitch"]["sport"~"\(sportPattern)"](around:\(radiusMeters),\(coordinate.latitude),\(coordinate.longitude));
         );
-        out center 200;
+        out center \(overpassResultLimit);
         """
         var request = URLRequest(url: URL(string: "https://overpass-api.de/api/interpreter")!)
         request.httpMethod = "POST"

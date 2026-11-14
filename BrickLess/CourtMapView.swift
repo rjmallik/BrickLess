@@ -64,7 +64,8 @@ struct CourtMapView: View {
     /// profile city (geocoded) and a live GPS fix, the fix is farther
     /// than the away threshold from the profile city, and the player
     /// has not dismissed it for this city-and-area with the X.
-    /// The banner is only a notice — it never moves the map.
+    /// Tapping the banner takes the player back to the profile city;
+    /// the X only dismisses it.
     private var showAwayBanner: Bool {
         guard let cityCoord = profileCityCoordinate,
               let gps = locationManager.location,
@@ -115,6 +116,31 @@ struct CourtMapView: View {
             cameraPosition = .region(MKCoordinateRegion(
                 center: coordinate, span: MKCoordinateSpan(latitudeDelta: 0.08, longitudeDelta: 0.08)))
             store.fetchCourts(around: coordinate)
+        }
+    }
+
+    /// Away-banner tap: jump back to the profile city (the player's
+    /// home/preferred location) and fetch venues around it. The
+    /// banner is dismissed for this city-and-area too, since the
+    /// player acted on it. Uses the already-geocoded profile city
+    /// coordinate when one exists; otherwise geocodes the city first.
+    private func goHomeToProfileCity() {
+        if let target = CityGeocoder.bannerHomeTarget(profileCityCoordinate: profileCityCoordinate) {
+            cameraPosition = .region(MKCoordinateRegion(
+                center: target, span: MKCoordinateSpan(latitudeDelta: 0.08, longitudeDelta: 0.08)))
+            store.fetchCourts(around: target)
+            dismissAwayBanner()
+        } else {
+            centerOnProfileCityIfNeeded()
+        }
+    }
+
+    /// Dismiss the away banner for the current city-and-area: the X
+    /// action, and the banner tap once it has acted on it. Dismissing
+    /// means keep looking around here; it never moves the map.
+    private func dismissAwayBanner() {
+        if let city = session.profile?.city, let gps = locationManager.location {
+            awayBannerDismissedFor = CityGeocoder.awayBannerKey(city: city, gps: gps)
         }
     }
 
@@ -212,20 +238,30 @@ struct CourtMapView: View {
 
                 // Away from home: the player's live GPS is far from
                 // their profile city (the preferred/home location).
-                // Just a notice — it never moves the map. The X on
-                // the right dismisses it; dismissing means keep
-                // looking around here (the profile city).
+                // Tapping the text goes back to the profile city and
+                // re-centres the map there; the X on the right only
+                // dismisses the banner (keep looking around here).
+                // The X is a separate button, visually divided from
+                // the tappable text, so the two actions stay distinct.
                 if showAwayBanner, let city = session.profile?.city {
                     HStack(spacing: 8) {
-                        Image(systemName: "mappin.and.ellipse")
-                            .foregroundColor(PlayMatchColors.brand)
-                        Text("You're away from \(city). Still looking around here?")
-                            .font(.subheadline)
-                        Spacer()
                         Button {
-                            if let gps = locationManager.location {
-                                awayBannerDismissedFor = CityGeocoder.awayBannerKey(city: city, gps: gps)
+                            goHomeToProfileCity()
+                        } label: {
+                            HStack(spacing: 8) {
+                                Image(systemName: "mappin.and.ellipse")
+                                    .foregroundColor(PlayMatchColors.brand)
+                                Text("You're away from \(city). Still looking around here?")
+                                    .font(.subheadline)
+                                    .multilineTextAlignment(.leading)
                             }
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Go back to \(city)")
+                        Spacer()
+                        Divider()
+                        Button {
+                            dismissAwayBanner()
                         } label: {
                             Image(systemName: "xmark")
                                 .font(.body.bold())
@@ -394,6 +430,13 @@ final class CityGeocoder: ObservableObject {
     /// area or changing the profile city re-arms the banner. Pure.
     static func awayBannerKey(city: String, gps: CLLocationCoordinate2D) -> String {
         "\(normalizedCity(city))|\(Int(gps.latitude * 10))_\(Int(gps.longitude * 10))"
+    }
+
+    /// Where the away banner's tap should jump to: the geocoded
+    /// profile city. Nil when no profile city is geocoded, meaning
+    /// the tap is a no-op (stay put). Pure.
+    static func bannerHomeTarget(profileCityCoordinate: CLLocationCoordinate2D?) -> CLLocationCoordinate2D? {
+        profileCityCoordinate
     }
 
     /// Geocode a city to a coordinate. A cached city answers

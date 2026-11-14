@@ -35,7 +35,14 @@ struct LoginView: View {
             } else {
                 Button("Login") {
                     errorMessage = nil
-                    session.signIn(email: email, password: password)
+                    session.signIn(email: email, password: password) { success in
+                        // Successful sign-in with Remember me checked
+                        // saves the login to the Keychain; unchecked
+                        // deletes any saved login.
+                        if success {
+                            session.applyRememberMe(email: email, password: password)
+                        }
+                    }
                 }
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
@@ -69,6 +76,18 @@ struct LoginView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text(resetMessage ?? "We will email you a link to reset your password.")
+        }
+        .onAppear {
+            // Remember me: prefill the login from the Keychain-saved
+            // credentials (saved at the last successful sign-in with
+            // Remember me checked). Signing out ends the session but
+            // leaves these alone, so the form is filled in and the
+            // player just taps Login. Only prefill empty fields.
+            if email.isEmpty, password.isEmpty,
+               let saved = session.savedLoginCredentials() {
+                email = saved.email
+                password = saved.password
+            }
         }
         .appBackground()
     }

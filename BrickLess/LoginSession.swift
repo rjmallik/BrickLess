@@ -33,13 +33,18 @@ class SessionStore: ObservableObject {
     private let db = Firestore.firestore()
     private var authListener: AuthStateDidChangeListenerHandle?
 
+    /// Where Remember-me credentials live (Keychain in the app).
+    /// Injectable so tests can swap in an in-memory store.
+    private let credentialStore: CredentialStoring
+
     /// True once the launch-time auth decision has run. Firebase fires
     /// the auth listener once at startup (with the restored user, if
     /// any) and again on every sign-in/sign-out. Only the first fire
     /// is the launch decision; later fires must not sign the user out.
     private var didHandleLaunchAuth = false
 
-    init() {
+    init(credentialStore: CredentialStoring = KeychainCredentialStore()) {
+        self.credentialStore = credentialStore
         authListener = Auth.auth().addStateDidChangeListener { [weak self] _, user in
             guard let self else { return }
             if !self.didHandleLaunchAuth {
@@ -232,10 +237,13 @@ class SessionStore: ObservableObject {
     // MARK: - Sign in / out
 
     /// Accepts an email or a username, plus the password.
-    func signIn(email: String, password: String) {
+    /// `completion` reports whether the sign-in succeeded, so the
+    /// caller can apply the Remember-me choice only on success.
+    func signIn(email: String, password: String, completion: (@escaping (Bool) -> Void)? = nil) {
         let input = email.trimmingCharacters(in: .whitespaces)
         guard !input.isEmpty, !password.isEmpty else {
             loginError = "Enter your email and password."
+            completion?(false)
             return
         }
         isLoading = true
@@ -245,18 +253,36 @@ class SessionStore: ObservableObject {
         // username to an email needs a public username-to-email mapping,
         // which would expose every user's email to anyone who looks a
         // name up. The email lives in Firebase Auth only.
-        signInWithEmail(input.lowercased(), password: password)
+        signInWithEmail(input.lowercased(), password: password, completion: completion)
     }
 
-    private func signInWithEmail(_ email: String, password: String) {
+    /// The login saved by Remember me, if any (Keychain). The login
+    /// screen prefills its email and password fields from this.
+    func savedLoginCredentials() -> (email: String, password: String)? {
+        credentialStore.savedCredentials()
+    }
+
+    /// Apply the Remember-me choice after a successful sign-in:
+    /// checked -> save the credentials to the Keychain; unchecked ->
+    /// delete any saved ones. Signing out never calls this, so saved
+    /// credentials survive sign-out and prefill the next login.
+    func applyRememberMe(email: String, password: String) {
+        RememberedLogin.apply(rememberMe: Self.storedRememberMe(),
+                              email: email, password: password,
+                              store: credentialStore)
+    }
+
+    private func signInWithEmail(_ email: String, password: String, completion: (@escaping (Bool) -> Void)? = nil) {
         Auth.auth().signIn(withEmail: email, password: password) { [weak self] _, error in
             guard let self else { return }
             self.isLoading = false
             if let error {
                 self.loginError = Self.friendlyError(error)
+                completion?(false)
                 return
             }
             self.loginError = nil
+            completion?(true)
             // The auth listener fetches the profile and flips isLoggedIn.
         }
     }

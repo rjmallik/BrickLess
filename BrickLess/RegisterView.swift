@@ -56,8 +56,14 @@ struct RegisterView: View {
                         errorMessage = "Passwords do not match."
                         return
                     }
-                    session.signUp(email: email, username: username, password: password) { _, error in
+                    session.signUp(email: email, username: username, password: password) { success, error in
                         errorMessage = error
+                        // Successful sign-up with Remember me checked
+                        // saves the login to the Keychain, so the next
+                        // sign-in after a sign-out is prefilled.
+                        if success {
+                            session.applyRememberMe(email: email, password: password)
+                        }
                     }
                 }
                 .foregroundColor(.white)
