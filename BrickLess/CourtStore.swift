@@ -1,7 +1,6 @@
 import Foundation
 import CoreLocation
 import FirebaseFirestore
-import FirebaseFirestoreSwift
 
 /// A basketball court, soccer field, or football field on the map.
 struct Court: Codable, Identifiable, Hashable {

@@ -2,7 +2,6 @@ import Foundation
 import Combine
 import FirebaseAuth
 import FirebaseFirestore
-import FirebaseFirestoreSwift
 
 /// Real auth for BrickLess, backed by Firebase Auth + Firestore.
 ///

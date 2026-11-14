@@ -2,7 +2,6 @@ import Foundation
 import Combine
 import FirebaseAuth
 import FirebaseFirestore
-import FirebaseFirestoreSwift
 
 /// A pickup game posted at a court, stored in Firestore.
 ///

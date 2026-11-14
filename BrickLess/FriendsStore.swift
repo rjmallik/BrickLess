@@ -2,7 +2,6 @@ import Foundation
 import Combine
 import FirebaseAuth
 import FirebaseFirestore
-import FirebaseFirestoreSwift
 
 /// Friend requests and friendships, stored in Firestore.
 ///

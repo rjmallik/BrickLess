@@ -1,5 +1,5 @@
 import Foundation
-import FirebaseFirestoreSwift
+import FirebaseFirestore
 
 /// A BrickLess player's public profile, stored in Firestore at `users/{uid}`.
 /// Usernames are unique: each one is also reserved in `usernames/{lowercasedUsername}`
