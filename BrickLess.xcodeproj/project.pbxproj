@@ -50,6 +50,8 @@
 		91B1001CF1A2000100C3D001 /* BookingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B1001BF1A2000100C3D001 /* BookingView.swift */; };
 		91B1001AF1A2000100C3D001 /* BookingStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B10019F1A2000100C3D001 /* BookingStore.swift */; };
 		91B10018F1A2000100C3D001 /* CourtMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B10017F1A2000100C3D001 /* CourtMapView.swift */; };
+		85992BE0096F0B8871853D99 /* SportTabs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F56B1A24BECC8B646F1F702 /* SportTabs.swift */; };
+		5936078BCCA37A8BEA94B849 /* ChatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9A5DE6F5BBC23BAB7A36B01 /* ChatsView.swift */; };
 		91B10016F1A2000100C3D001 /* CourtStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B10015F1A2000100C3D001 /* CourtStore.swift */; };
 		91B10014F1A2000100C3D001 /* FriendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B10013F1A2000100C3D001 /* FriendsView.swift */; };
 		91B10012F1A2000100C3D001 /* FriendsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B10011F1A2000100C3D001 /* FriendsStore.swift */; };
@@ -62,6 +64,8 @@
 		9BFFB67D8AECDC9275EBB853 /* BookingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9C79BAAA898A534FF2558EC /* BookingTests.swift */; };
 		EB626D8F61B9E542FFF0BBA2 /* ChatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AA2E5A6893D4D5D3E380F72 /* ChatTests.swift */; };
 		A4FC153A53780FC8E5EAF78E /* CourtTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9CC7F8E3A3379E571796F87 /* CourtTests.swift */; };
+		ED7A7BF2136A93BF1620DF19 /* SessionLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2918022CC8FAB5000A33DE9 /* SessionLaunchTests.swift */; };
+		386AAB274743290F537D64E9 /* SportTabsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35613C3C4292D3084DC5213B /* SportTabsTests.swift */; };
 		701319E55C493CD4ADAC004D /* DeleteAccountTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89AF132552F589117EE12377 /* DeleteAccountTests.swift */; };
 		0E969DB0BDE74E6A14B4067D /* EventTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8867DBCF971D9C6DD212E1EF /* EventTests.swift */; };
 		4755038AEEC7F1BE8394F095 /* FriendsAndPlayersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A59CC56B946E54D18372B661 /* FriendsAndPlayersTests.swift */; };
@@ -103,6 +107,8 @@
 		91B1001BF1A2000100C3D001 /* BookingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookingView.swift; sourceTree = "<group>"; };
 		91B10019F1A2000100C3D001 /* BookingStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookingStore.swift; sourceTree = "<group>"; };
 		91B10017F1A2000100C3D001 /* CourtMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourtMapView.swift; sourceTree = "<group>"; };
+		1F56B1A24BECC8B646F1F702 /* SportTabs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SportTabs.swift; sourceTree = "<group>"; };
+		F9A5DE6F5BBC23BAB7A36B01 /* ChatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatsView.swift; sourceTree = "<group>"; };
 		91B10015F1A2000100C3D001 /* CourtStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourtStore.swift; sourceTree = "<group>"; };
 		91B10013F1A2000100C3D001 /* FriendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsView.swift; sourceTree = "<group>"; };
 		91B10011F1A2000100C3D001 /* FriendsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsStore.swift; sourceTree = "<group>"; };
@@ -115,6 +121,8 @@
 		D9C79BAAA898A534FF2558EC /* BookingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookingTests.swift; sourceTree = "<group>"; };
 		4AA2E5A6893D4D5D3E380F72 /* ChatTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatTests.swift; sourceTree = "<group>"; };
 		E9CC7F8E3A3379E571796F87 /* CourtTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourtTests.swift; sourceTree = "<group>"; };
+		B2918022CC8FAB5000A33DE9 /* SessionLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionLaunchTests.swift; sourceTree = "<group>"; };
+		35613C3C4292D3084DC5213B /* SportTabsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SportTabsTests.swift; sourceTree = "<group>"; };
 		89AF132552F589117EE12377 /* DeleteAccountTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountTests.swift; sourceTree = "<group>"; };
 		8867DBCF971D9C6DD212E1EF /* EventTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventTests.swift; sourceTree = "<group>"; };
 		A59CC56B946E54D18372B661 /* FriendsAndPlayersTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsAndPlayersTests.swift; sourceTree = "<group>"; };
@@ -208,6 +216,8 @@
 				91B1001BF1A2000100C3D001 /* BookingView.swift */,
 				91B10019F1A2000100C3D001 /* BookingStore.swift */,
 				91B10017F1A2000100C3D001 /* CourtMapView.swift */,
+				1F56B1A24BECC8B646F1F702 /* SportTabs.swift */,
+				F9A5DE6F5BBC23BAB7A36B01 /* ChatsView.swift */,
 				91B10015F1A2000100C3D001 /* CourtStore.swift */,
 				91B10013F1A2000100C3D001 /* FriendsView.swift */,
 				91B10011F1A2000100C3D001 /* FriendsStore.swift */,
@@ -237,6 +247,8 @@
 				D9C79BAAA898A534FF2558EC /* BookingTests.swift */,
 				4AA2E5A6893D4D5D3E380F72 /* ChatTests.swift */,
 				E9CC7F8E3A3379E571796F87 /* CourtTests.swift */,
+				B2918022CC8FAB5000A33DE9 /* SessionLaunchTests.swift */,
+				35613C3C4292D3084DC5213B /* SportTabsTests.swift */,
 				89AF132552F589117EE12377 /* DeleteAccountTests.swift */,
 				8867DBCF971D9C6DD212E1EF /* EventTests.swift */,
 				A59CC56B946E54D18372B661 /* FriendsAndPlayersTests.swift */,
@@ -404,6 +416,8 @@
 				91B1001CF1A2000100C3D001 /* BookingView.swift in Sources */,
 				91B1001AF1A2000100C3D001 /* BookingStore.swift in Sources */,
 				91B10018F1A2000100C3D001 /* CourtMapView.swift in Sources */,
+				85992BE0096F0B8871853D99 /* SportTabs.swift in Sources */,
+				5936078BCCA37A8BEA94B849 /* ChatsView.swift in Sources */,
 				91B10016F1A2000100C3D001 /* CourtStore.swift in Sources */,
 				91B10014F1A2000100C3D001 /* FriendsView.swift in Sources */,
 				91B10012F1A2000100C3D001 /* FriendsStore.swift in Sources */,
@@ -423,6 +437,8 @@
 				9BFFB67D8AECDC9275EBB853 /* BookingTests.swift in Sources */,
 				EB626D8F61B9E542FFF0BBA2 /* ChatTests.swift in Sources */,
 				A4FC153A53780FC8E5EAF78E /* CourtTests.swift in Sources */,
+				ED7A7BF2136A93BF1620DF19 /* SessionLaunchTests.swift in Sources */,
+				386AAB274743290F537D64E9 /* SportTabsTests.swift in Sources */,
 				701319E55C493CD4ADAC004D /* DeleteAccountTests.swift in Sources */,
 				0E969DB0BDE74E6A14B4067D /* EventTests.swift in Sources */,
 				4755038AEEC7F1BE8394F095 /* FriendsAndPlayersTests.swift in Sources */,
