@@ -1,8 +1,8 @@
-# Privacy Policy — BrickLess
+# Privacy Policy — PlayMatch
 
 Effective date: November 9, 2026
 
-BrickLess ("the App") is a basketball app that lets players create an account, set up a profile, find courts, add friends, book court time, and join pickup games. This policy explains what data the App collects and what happens to it. Contact: rutujit97872@gmail.com.
+PlayMatch ("the App") is a sports app that lets players create an account, set up a profile, find courts and fields, add friends, book time, and join pickup games. This policy explains what data the App collects and what happens to it. Contact: rutujit97872@gmail.com.
 
 ## What we collect
 
@@ -27,7 +27,7 @@ You can delete your account from inside the App (My Profile > Delete Account). T
 
 ## Children
 
-BrickLess is not directed at children under 13. If you are under 13, do not use the App.
+PlayMatch is not directed at children under 13. If you are under 13, do not use the App.
 
 ## Changes
 

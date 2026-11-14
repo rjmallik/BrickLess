@@ -1,5 +1,5 @@
 import XCTest
-@testable import BrickLess
+@testable import PlayMatch
 
 /// Signup + profile rules: what a new user can and cannot enter.
 final class UserProfileTests: XCTestCase {

@@ -19,7 +19,7 @@ struct ContentView: View {
                 VStack {
                     if session.isLoading {
                         // Signing in: a spinner only. The launch splash
-                        // (LoadingView, in BrickLessApp) must not be reused
+                        // (LoadingView, in PlayMatchApp) must not be reused
                         // here: after 2s it opens a second ContentView with
                         // a second, empty SessionStore.
                         ProgressView("Signing you in…")
@@ -48,7 +48,7 @@ struct MainAppView: View {
             Color.black.edgesIgnoringSafeArea(.all)
             VStack {
                 Spacer()
-                Text("BrickLess").font(.custom("Arial", size: 60)).fontWeight(.bold).foregroundColor(.white)
+                Text("PlayMatch").font(.custom("Arial", size: 60)).fontWeight(.bold).foregroundColor(.white)
                 NavigationLink(destination: RecreationalView(session: session)) {
                     Text("Recreational").foregroundColor(.white).font(.title)
                     .frame(maxWidth: .infinity, minHeight: 250).background(Color.blue).cornerRadius(10)

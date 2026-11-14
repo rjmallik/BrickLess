@@ -120,7 +120,7 @@ struct ProfileSetupView: View {
                 // time it opens. Never required: Save Profile below always
                 // works, and the map asks again on first open if skipped.
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("BrickLess uses your location to show courts and fields near you.")
+                    Text("PlayMatch uses your location to show courts and fields near you.")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                     switch LocationManager.setupPrompt(for: locationManager.authorizationStatus) {
@@ -140,7 +140,7 @@ struct ProfileSetupView: View {
                             .font(.subheadline)
                             .foregroundColor(.green)
                     case .unavailable:
-                        Text("Location is off. You can still use BrickLess — the map will show downtown Seattle. Turn it on later in Settings.")
+                        Text("Location is off. You can still use PlayMatch — the map will show downtown Seattle. Turn it on later in Settings.")
                             .font(.footnote)
                             .foregroundColor(.secondary)
                     }

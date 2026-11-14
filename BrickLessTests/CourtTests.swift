@@ -1,6 +1,6 @@
 import XCTest
 import CoreLocation
-@testable import BrickLess
+@testable import PlayMatch
 
 /// Court map: grid cells for the geo-scoped fetch, OSM sport
 /// classification, and the all-phases-except-golf launch scope.

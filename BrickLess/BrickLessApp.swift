@@ -3,7 +3,7 @@ import Firebase
 import FirebaseAppCheck
 
 @main
-struct BrickLessApp: App {
+struct PlayMatchApp: App {
     let persistenceController = PersistenceController.shared
 
     init() {

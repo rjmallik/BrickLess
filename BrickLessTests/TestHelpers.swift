@@ -1,7 +1,7 @@
 import Foundation
-@testable import BrickLess
+@testable import PlayMatch
 
-/// Shared builders for the BrickLess unit tests. All dates are built
+/// Shared builders for the PlayMatch unit tests. All dates are built
 /// off one fixed reference point so time-based tests are deterministic
 /// and never flaky around "now".
 

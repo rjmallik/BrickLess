@@ -1,7 +1,7 @@
 import Foundation
 import FirebaseFirestoreSwift
 
-/// A BrickLess player's public profile, stored in Firestore at `users/{uid}`.
+/// A PlayMatch player's public profile, stored in Firestore at `users/{uid}`.
 /// Usernames are unique: each one is also reserved in `usernames/{lowercasedUsername}`
 /// with `{ uid }` only. The profile and the username reservation hold no
 /// private contact details: the email lives in Firebase Auth only, never

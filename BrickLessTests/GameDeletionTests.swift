@@ -1,5 +1,5 @@
 import XCTest
-@testable import BrickLess
+@testable import PlayMatch
 
 /// Deleting a game deletes its chat too: message IDs are chunked into
 /// batches of at most 500 (the Firestore batch limit), and the event

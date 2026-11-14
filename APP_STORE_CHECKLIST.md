@@ -1,6 +1,6 @@
-# BrickLess — App Store checklist
+# PlayMatch — App Store checklist
 
-Last updated: Nov 13, 2026. Code is on `main` at rjmallik/BrickLess. Firebase project is now **brickless-1ab80** (free Spark plan, no billing). The old project brickless-6e0f9 was never under RJ's Google account and is abandoned.
+Last updated: Nov 13, 2026. Code is on `main` at rjmallik/PlayMatch. Firebase project is now **brickless-1ab80** (free Spark plan, no billing). The old project brickless-6e0f9 was never under RJ's Google account and is abandoned.
 
 ## Already done in code
 
@@ -22,9 +22,9 @@ Last updated: Nov 13, 2026. Code is on `main` at rjmallik/BrickLess. Firebase pr
 ## RJ: Xcode + App Store Connect
 
 1. **Apple Developer Program** ($99/year) at developer.apple.com, if you don't have it yet.
-2. In Xcode, pick your **signing team** for the BrickLess target (no team is set yet).
+2. In Xcode, pick your **signing team** for the PlayMatch target (no team is set yet).
 3. Build, then **Product > Archive > Distribute App > App Store Connect**.
-4. **TestFlight first** (this is the "downloadable" path before the store): in App Store Connect, the build appears under TestFlight. Internal testers (up to 100) can install it with no review; external testers (up to 10,000) need Beta App Review, usually about a day. Testers install the TestFlight app, accept the invite, and download BrickLess from there.
+4. **TestFlight first** (this is the "downloadable" path before the store): in App Store Connect, the build appears under TestFlight. Internal testers (up to 100) can install it with no review; external testers (up to 10,000) need Beta App Review, usually about a day. Testers install the TestFlight app, accept the invite, and download PlayMatch from there.
 5. App Store listing: screenshots (6.5" and 5.5" iPhone sizes), description, keywords, support URL, and the **privacy policy URL**: https://rjmallik.github.io/brickless-privacy.html.
 6. **App Privacy labels** (App Store Connect > App Privacy): we collect Contact Info (email), User Content (username, profile), Precise Location (only while using the map), and User ID. Data is linked to the user. Data is **not** used for tracking, and nothing is sold. There is no analytics or advertising SDK.
 7. **Age rating:** expect 12+ because of user-generated content and friend interaction. Be honest in the questionnaire; the rating follows from it.

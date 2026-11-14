@@ -1,5 +1,5 @@
 import XCTest
-@testable import BrickLess
+@testable import PlayMatch
 
 /// Event group chat: only joined players can see it and send in it,
 /// and blocked senders are hidden from everyone else.

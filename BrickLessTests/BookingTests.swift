@@ -1,5 +1,5 @@
 import XCTest
-@testable import BrickLess
+@testable import PlayMatch
 
 /// Court bookings: time validation and the overlap check that stops
 /// two players booking the same court at the same time.

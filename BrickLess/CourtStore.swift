@@ -21,7 +21,7 @@ struct Court: Codable, Identifiable, Hashable {
     /// get this computed in code; community courts store it in Firestore.
     var gridKey: String = ""
 
-    /// OSM sport tag string (e.g. "basketball;soccer") to BrickLess
+    /// OSM sport tag string (e.g. "basketball;soccer") to PlayMatch
     /// sport: one of the launch sports, or "multi" when the pitch serves
     /// several. A bare "football" tag means soccer in most of the world;
     /// American football is "american_football".

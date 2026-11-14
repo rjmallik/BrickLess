@@ -86,7 +86,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		910B08062BD6405300D4E602 /* BrickLess.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BrickLess.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		910B08062BD6405300D4E602 /* BrickLess.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PlayMatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		910B08092BD6405300D4E602 /* BrickLessApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrickLessApp.swift; sourceTree = "<group>"; };
 		910B080B2BD6405300D4E602 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		910B080D2BD6405400D4E602 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -177,7 +177,7 @@
 		910B07FD2BD6405300D4E602 = {
 			isa = PBXGroup;
 			children = (
-				910B08082BD6405300D4E602 /* BrickLess */,
+				910B08082BD6405300D4E602 /* PlayMatch */,
 				2915F53DE39E9FFA28C2E0B8 /* BrickLessTests */,
 				910B08072BD6405300D4E602 /* Products */,
 			);
@@ -186,7 +186,7 @@
 		910B08072BD6405300D4E602 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				910B08062BD6405300D4E602 /* BrickLess.app */,
+				910B08062BD6405300D4E602 /* PlayMatch.app */,
 				5961ADB46AF2E7167C060598 /* BrickLessTests.xctest */,
 			);
 			name = Products;
@@ -255,9 +255,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		910B08052BD6405300D4E602 /* BrickLess */ = {
+		910B08052BD6405300D4E602 /* PlayMatch */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 910B08192BD6405400D4E602 /* Build configuration list for PBXNativeTarget "BrickLess" */;
+			buildConfigurationList = 910B08192BD6405400D4E602 /* Build configuration list for PBXNativeTarget "PlayMatch" */;
 			buildPhases = (
 				910B08022BD6405300D4E602 /* Sources */,
 				910B08032BD6405300D4E602 /* Frameworks */,
@@ -267,7 +267,7 @@
 			);
 			dependencies = (
 			);
-			name = BrickLess;
+			name = PlayMatch;
 			packageProductDependencies = (
 				9121B8112BD88B3C002F5793 /* FirebaseAnalytics */,
 				9121B8132BD88B3C002F5793 /* FirebaseAnalyticsOnDeviceConversion */,
@@ -297,7 +297,7 @@
 				9121B8432BD88B3C002F5793 /* FirebaseStorage */,
 				9121B8452BD88B3C002F5793 /* FirebaseStorageCombine-Community */,
 			);
-			productName = BrickLess;
+			productName = PlayMatch;
 			productReference = 910B08062BD6405300D4E602 /* BrickLess.app */;
 			productType = "com.apple.product-type.application";
 		};
@@ -359,10 +359,10 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				910B08052BD6405300D4E602 /* BrickLess */,
+				910B08052BD6405300D4E602 /* PlayMatch */,
 			);
 			targets = (
-				910B08052BD6405300D4E602 /* BrickLess */,
+				910B08052BD6405300D4E602 /* PlayMatch */,
 				EDB2656AD8032E7ABC98215C /* BrickLessTests */,
 			);
 		};
@@ -581,7 +581,7 @@
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "BrickLess uses your location to show basketball courts near you.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "PlayMatch uses your location to show courts and fields near you.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -610,7 +610,7 @@
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "BrickLess uses your location to show basketball courts near you.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "PlayMatch uses your location to show courts and fields near you.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -645,7 +645,7 @@
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BrickLess.app/BrickLess";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PlayMatch.app/PlayMatch";
 			};
 			name = Debug;
 		};
@@ -668,7 +668,7 @@
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BrickLess.app/BrickLess";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PlayMatch.app/PlayMatch";
 			};
 			name = Release;
 		};

@@ -11,7 +11,7 @@ struct LoginView: View {
 
     var body: some View {
         VStack {
-            Text("BrickLess")
+            Text("PlayMatch")
                 .font(.system(size: 44, weight: .bold))
                 .padding(.bottom, 8)
 

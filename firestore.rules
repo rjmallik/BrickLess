@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// BrickLess Firestore rules. Deploy with: firebase deploy --only firestore:rules
+// PlayMatch Firestore rules. Deploy with: firebase deploy --only firestore:rules
 // (Firebase console: Firestore Database must exist first, and
 // Email/Password must be enabled in Authentication > Sign-in method.)
 //

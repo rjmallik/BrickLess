@@ -1,5 +1,5 @@
 import XCTest
-@testable import BrickLess
+@testable import PlayMatch
 
 /// Player browse filtering covers ALL players, not just the loaded
 /// pages (issue #4): the level filter is a server-side equality

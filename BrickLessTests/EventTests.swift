@@ -1,5 +1,5 @@
 import XCTest
-@testable import BrickLess
+@testable import PlayMatch
 
 /// Pickup games: creation rules, joining (including the last spot),
 /// and the upcoming list players actually see.

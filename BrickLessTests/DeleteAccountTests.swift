@@ -1,5 +1,5 @@
 import XCTest
-@testable import BrickLess
+@testable import PlayMatch
 
 /// Delete Account cleanup (issue #2): the pure helpers behind it.
 /// No Firebase here: chunking and the cleanup-query list are pure, so

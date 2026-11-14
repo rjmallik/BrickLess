@@ -9,7 +9,7 @@ import FirebaseFirestoreSwift
 /// startTime, endTime, status: "confirmed" | "cancelled", createdAt }.
 ///
 /// What booking means here, honestly:
-/// - Reserving a slot / starting a pickup game in BrickLess: yes, fully.
+/// - Reserving a slot / starting a pickup game in PlayMatch: yes, fully.
 /// - Booking a real facility that charges money: that only works where
 ///   the facility lets you book. Public parks mostly cannot be booked
 ///   through any API; private facilities have their own systems. Paid

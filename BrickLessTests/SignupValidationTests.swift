@@ -1,6 +1,6 @@
 import XCTest
 import FirebaseAuth
-@testable import BrickLess
+@testable import PlayMatch
 
 /// Signup + profile-setup validation and auth error messages:
 /// the exact strings a new user sees when something is wrong.

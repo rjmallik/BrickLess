@@ -1,6 +1,6 @@
 import XCTest
 import CoreLocation
-@testable import BrickLess
+@testable import PlayMatch
 
 /// Profile-setup location step: what the setup screen shows for each
 /// authorization state. Pure mapping, no device needed. The key

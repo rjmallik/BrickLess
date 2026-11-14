@@ -4,7 +4,7 @@ import FirebaseAuth
 import FirebaseFirestore
 import FirebaseFirestoreSwift
 
-/// Real auth for BrickLess, backed by Firebase Auth + Firestore.
+/// Real auth for PlayMatch, backed by Firebase Auth + Firestore.
 ///
 /// Replaces the old demo login (hardcoded user/password, users kept only
 /// in memory and lost on restart). Now:

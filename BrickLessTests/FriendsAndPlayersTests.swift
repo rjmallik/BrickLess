@@ -1,5 +1,5 @@
 import XCTest
-@testable import BrickLess
+@testable import PlayMatch
 
 /// Friends search and player discovery: query rules, blocked users
 /// never appearing, and the level/city filters.
