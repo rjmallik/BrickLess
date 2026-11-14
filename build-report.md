@@ -1,8 +1,8 @@
 # BrickLess build report
 
-- Commit: 4867f32e55032b6ddacd63d29026ab3586e2a70c
-- Run: https://github.com/rjmallik/PlayMatch/actions/runs/43558800486
-- Date: 2026-11-14T05:02:18Z
+- Commit: b08001b43c9e247afdb7112c13a9dfe346279d57
+- Run: https://github.com/rjmallik/PlayMatch/actions/runs/43567079729
+- Date: 2026-11-14T06:40:44Z
 - Build: failure
 - Tests: skipped
 
@@ -10,47 +10,58 @@
 ```
     
 
-SwiftCompile normal x86_64 /Users/runner/work/PlayMatch/PlayMatch/BrickLess/RegisterView.swift (in target 'PlayMatch' from project 'BrickLess')
+SwiftCompile normal arm64 /Users/runner/work/PlayMatch/PlayMatch/BrickLess/DirectChatStore.swift (in target 'PlayMatch' from project 'BrickLess')
     cd /Users/runner/work/PlayMatch/PlayMatch
     
 
-SwiftCompile normal x86_64 /Users/runner/work/PlayMatch/PlayMatch/BrickLess/LoginSession.swift (in target 'PlayMatch' from project 'BrickLess')
+SwiftCompile normal arm64 /Users/runner/work/PlayMatch/PlayMatch/BrickLess/DirectChatView.swift (in target 'PlayMatch' from project 'BrickLess')
     cd /Users/runner/work/PlayMatch/PlayMatch
     
 
-SwiftCompile normal x86_64 /Users/runner/work/PlayMatch/PlayMatch/BrickLess/LoadingScreenUI.swift (in target 'PlayMatch' from project 'BrickLess')
+SwiftCompile normal arm64 /Users/runner/work/PlayMatch/PlayMatch/BrickLess/StartChatView.swift (in target 'PlayMatch' from project 'BrickLess')
     cd /Users/runner/work/PlayMatch/PlayMatch
     
 
-SwiftCompile normal x86_64 /Users/runner/work/PlayMatch/PlayMatch/BrickLess/UserProfile.swift (in target 'PlayMatch' from project 'BrickLess')
+SwiftCompile normal arm64 /Users/runner/work/PlayMatch/PlayMatch/BrickLess/CourtStore.swift (in target 'PlayMatch' from project 'BrickLess')
     cd /Users/runner/work/PlayMatch/PlayMatch
     
 
-SwiftCompile normal x86_64 /Users/runner/work/PlayMatch/PlayMatch/BrickLess/ProfileSetupView.swift (in target 'PlayMatch' from project 'BrickLess')
+SwiftCompile normal arm64 /Users/runner/work/PlayMatch/PlayMatch/BrickLess/FriendsView.swift (in target 'PlayMatch' from project 'BrickLess')
     cd /Users/runner/work/PlayMatch/PlayMatch
     
 
-SwiftCompile normal x86_64 /Users/runner/work/PlayMatch/PlayMatch/BrickLess/ProfileView.swift (in target 'PlayMatch' from project 'BrickLess')
+SwiftCompile normal arm64 /Users/runner/work/PlayMatch/PlayMatch/BrickLess/FriendsStore.swift (in target 'PlayMatch' from project 'BrickLess')
     cd /Users/runner/work/PlayMatch/PlayMatch
     
 
-SwiftCompile normal x86_64 /Users/runner/work/PlayMatch/PlayMatch/BrickLess/BookingView.swift (in target 'PlayMatch' from project 'BrickLess')
+SwiftCompile normal arm64 /Users/runner/work/PlayMatch/PlayMatch/BrickLess/PlayersStore.swift (in target 'PlayMatch' from project 'BrickLess')
     cd /Users/runner/work/PlayMatch/PlayMatch
     
 
-SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/PhotosUI-CUXW3PBA1A7NL8V4FSUB5GXBV.pcm
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/CoreVideo-9FR5O68YZAFEGZNM2GCV3OB8X.pcm
 
 ** BUILD FAILED **
 
 
 The following build commands failed:
-	EmitSwiftModule normal x86_64 (in target 'PlayMatch' from project 'BrickLess')
-	SwiftEmitModule normal x86_64 Emitting\ module\ for\ PlayMatch (in target 'PlayMatch' from project 'BrickLess')
+	EmitSwiftModule normal arm64 (in target 'PlayMatch' from project 'BrickLess')
+	SwiftEmitModule normal arm64 Emitting\ module\ for\ PlayMatch (in target 'PlayMatch' from project 'BrickLess')
 	Building project BrickLess with scheme BrickLess
 (3 failures)
 ```
 
 ## Test log (tail)
+```
+(no test log)
+```
+
+## Build errors
+```
+/Users/runner/work/PlayMatch/PlayMatch/BrickLess/LoginSession.swift:271:80: error: closure is already escaping in optional type argument
+/Users/runner/work/PlayMatch/PlayMatch/BrickLess/LoginSession.swift:310:99: error: closure is already escaping in optional type argument
+```
+
+## Test errors
 ```
 (no test log)
 ```
