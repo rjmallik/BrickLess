@@ -1,95 +1,56 @@
 # BrickLess build report
 
-- Commit: 73a9792b49f8035c22ebab73a911e9cbbff5ad79
-- Run: https://github.com/rjmallik/BrickLess/actions/runs/43551005866
-- Date: 2026-11-14T03:24:08Z
-- Build: success
-- Tests: failure
+- Commit: 9ed7eee83e45fc0ef1fbaa5d3836e5bd4b247462
+- Run: https://github.com/rjmallik/BrickLess/actions/runs/43555130063
+- Date: 2026-11-14T04:16:48Z
+- Build: failure
+- Tests: skipped
 
 ## Build log (tail)
 ```
-    /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsnltrainingprocessor --infoplist-path /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Products/Debug-iphonesimulator/PlayMatch.app/Info.plist --temp-dir-path /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Intermediates.noindex/BrickLess.build/Debug-iphonesimulator/PlayMatch.build/ssu --bundle-id rjmallik.BrickLess --product-path /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Products/Debug-iphonesimulator/PlayMatch.app --extracted-metadata-path /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Products/Debug-iphonesimulator/PlayMatch.app/Metadata.appintents --metadata-file-list /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Intermediates.noindex/BrickLess.build/Debug-iphonesimulator/PlayMatch.build/PlayMatch.DependencyMetadataFileList --source-file /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Products/Debug-iphonesimulator/PlayMatch.app/Info.plist --archive-ssu-assets
-2026-11-14 03:23:19.791 appintentsnltrainingprocessor[8479:30985] Parsing options for appintentsnltrainingprocessor
-2026-11-14 03:23:19.791 appintentsnltrainingprocessor[8479:30985] Starting AppIntents SSU YAML Generation
-2026-11-14 03:23:19.796 appintentsnltrainingprocessor[8479:30985] No AppShortcuts found - Skipping.
+    
 
-CodeSign /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Products/Debug-iphonesimulator/PlayMatch.app/PlayMatch.debug.dylib (in target 'PlayMatch' from project 'BrickLess')
+SwiftCompile normal x86_64 /Users/runner/work/BrickLess/BrickLess/BrickLess/LoadingScreenUI.swift (in target 'PlayMatch' from project 'BrickLess')
     cd /Users/runner/work/BrickLess/BrickLess
     
-    Signing Identity:     "Sign to Run Locally"
-    
-    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Products/Debug-iphonesimulator/PlayMatch.app/PlayMatch.debug.dylib
 
-CodeSign /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Products/Debug-iphonesimulator/PlayMatch.app/__preview.dylib (in target 'PlayMatch' from project 'BrickLess')
+SwiftCompile normal x86_64 /Users/runner/work/BrickLess/BrickLess/BrickLess/UserProfile.swift (in target 'PlayMatch' from project 'BrickLess')
     cd /Users/runner/work/BrickLess/BrickLess
     
-    Signing Identity:     "Sign to Run Locally"
-    
-    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Products/Debug-iphonesimulator/PlayMatch.app/__preview.dylib
 
-CodeSign /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Products/Debug-iphonesimulator/PlayMatch.app (in target 'PlayMatch' from project 'BrickLess')
+SwiftCompile normal x86_64 /Users/runner/work/BrickLess/BrickLess/BrickLess/ProfileSetupView.swift (in target 'PlayMatch' from project 'BrickLess')
     cd /Users/runner/work/BrickLess/BrickLess
     
-    Signing Identity:     "Sign to Run Locally"
+
+SwiftCompile normal x86_64 /Users/runner/work/BrickLess/BrickLess/BrickLess/ProfileView.swift (in target 'PlayMatch' from project 'BrickLess')
+    cd /Users/runner/work/BrickLess/BrickLess
     
-    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Products/Debug-iphonesimulator/PlayMatch.app
 
-RegisterExecutionPolicyException /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Products/Debug-iphonesimulator/PlayMatch.app (in target 'PlayMatch' from project 'BrickLess')
-    cd /Users/runner/work/BrickLess/BrickLess
-    builtin-RegisterExecutionPolicyException /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Products/Debug-iphonesimulator/PlayMatch.app
+CreateUniversalBinary /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Products/Debug-iphonesimulator/FirebaseAnalyticsSwift.o normal arm64\ x86_64 (in target 'FirebaseAnalyticsSwift' from project 'Firebase')
+    cd /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/SourcePackages/checkouts/firebase-ios-sdk
+    /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/lipo -create /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Intermediates.noindex/Firebase.build/Debug-iphonesimulator/FirebaseAnalyticsSwift.build/Objects-normal/arm64/Binary/FirebaseAnalyticsSwift.o /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Intermediates.noindex/Firebase.build/Debug-iphonesimulator/FirebaseAnalyticsSwift.build/Objects-normal/x86_64/Binary/FirebaseAnalyticsSwift.o -output /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Products/Debug-iphonesimulator/FirebaseAnalyticsSwift.o
 
-Validate /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Products/Debug-iphonesimulator/PlayMatch.app (in target 'PlayMatch' from project 'BrickLess')
-    cd /Users/runner/work/BrickLess/BrickLess
-    builtin-validationUtility /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Products/Debug-iphonesimulator/PlayMatch.app -shallow-bundle -infoplist-subpath Info.plist
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/SwiftUI-21HO5GXGWMPI9BSAIULZAIM08.pcm
 
-Touch /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Products/Debug-iphonesimulator/PlayMatch.app (in target 'PlayMatch' from project 'BrickLess')
-    cd /Users/runner/work/BrickLess/BrickLess
-    /usr/bin/touch -c /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Products/Debug-iphonesimulator/PlayMatch.app
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules/FirebaseFirestoreInternal-EVX3YTC8ZLOVG6LOZ7C9LF4TS.pcm
 
-** BUILD SUCCEEDED **
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules/GTMSessionFetcherCore-4Y6Z53Z3YZ0ZHGXNNYFGJMYVY.pcm
 
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules/FirebaseAnalytics-BZZNILR5B1M1URNZLI946IUOY.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/PhotosUI-CUXW3PBA1A7NL8V4FSUB5GXBV.pcm
+
+** BUILD FAILED **
+
+
+The following build commands failed:
+	EmitSwiftModule normal x86_64 (in target 'PlayMatch' from project 'BrickLess')
+	SwiftEmitModule normal x86_64 Emitting\ module\ for\ PlayMatch (in target 'PlayMatch' from project 'BrickLess')
+	Building project BrickLess with scheme BrickLess
+(3 failures)
 ```
 
 ## Test log (tail)
 ```
-    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Intermediates.noindex/BrickLess.build/Debug-iphonesimulator/BrickLessTests.build/Objects-normal/arm64/BrickLessTests.swiftdoc /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Products/Debug-iphonesimulator/BrickLessTests.swiftmodule/arm64-apple-ios-simulator.swiftdoc
-
-Copy /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Products/Debug-iphonesimulator/BrickLessTests.swiftmodule/arm64-apple-ios-simulator.abi.json /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Intermediates.noindex/BrickLess.build/Debug-iphonesimulator/BrickLessTests.build/Objects-normal/arm64/BrickLessTests.abi.json (in target 'BrickLessTests' from project 'BrickLess')
-    cd /Users/runner/work/BrickLess/BrickLess
-    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Intermediates.noindex/BrickLess.build/Debug-iphonesimulator/BrickLessTests.build/Objects-normal/arm64/BrickLessTests.abi.json /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Products/Debug-iphonesimulator/BrickLessTests.swiftmodule/arm64-apple-ios-simulator.abi.json
-
-Copy /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Products/Debug-iphonesimulator/BrickLessTests.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Intermediates.noindex/BrickLess.build/Debug-iphonesimulator/BrickLessTests.build/Objects-normal/arm64/BrickLessTests.swiftsourceinfo (in target 'BrickLessTests' from project 'BrickLess')
-    cd /Users/runner/work/BrickLess/BrickLess
-    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Intermediates.noindex/BrickLess.build/Debug-iphonesimulator/BrickLessTests.build/Objects-normal/arm64/BrickLessTests.swiftsourceinfo /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Products/Debug-iphonesimulator/BrickLessTests.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo
-
-SwiftCompile normal arm64 Compiling\ TestHelpers.swift,\ UserProfileTests.swift /Users/runner/work/BrickLess/BrickLess/BrickLessTests/TestHelpers.swift /Users/runner/work/BrickLess/BrickLess/BrickLessTests/UserProfileTests.swift (in target 'BrickLessTests' from project 'BrickLess')
-SwiftCompile normal arm64 /Users/runner/work/BrickLess/BrickLess/BrickLessTests/TestHelpers.swift (in target 'BrickLessTests' from project 'BrickLess')
-    cd /Users/runner/work/BrickLess/BrickLess
-    
-
-SwiftCompile normal arm64 /Users/runner/work/BrickLess/BrickLess/BrickLessTests/UserProfileTests.swift (in target 'BrickLessTests' from project 'BrickLess')
-    cd /Users/runner/work/BrickLess/BrickLess
-    
-
-SwiftDriverJobDiscovery normal arm64 Compiling LocationSetupTests.swift, PlayersFilteringTests.swift, SignupValidationTests.swift (in target 'BrickLessTests' from project 'BrickLess')
-
-SwiftDriverJobDiscovery normal arm64 Compiling BookingTests.swift, ChatTests.swift, CourtTests.swift (in target 'BrickLessTests' from project 'BrickLess')
-
-
-Test session results, code coverage, and logs:
-	/Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Logs/Test/Test-BrickLess-2026.11.14_03-23-26-+0000.xcresult
-
-Testing failed:
-	Cannot find type 'Color' in scope
-	Cannot infer key path type from context; consider explicitly specifying a root type
-	Testing cancelled because the build failed.
-
-** TEST FAILED **
-
-
-The following build commands failed:
-	SwiftCompile normal arm64 Compiling\ SessionLaunchTests.swift,\ SportTabsTests.swift,\ DeleteAccountTests.swift /Users/runner/work/BrickLess/BrickLess/BrickLessTests/SessionLaunchTests.swift /Users/runner/work/BrickLess/BrickLess/BrickLessTests/SportTabsTests.swift /Users/runner/work/BrickLess/BrickLess/BrickLessTests/DeleteAccountTests.swift (in target 'BrickLessTests' from project 'BrickLess')
-	SwiftCompile normal arm64 /Users/runner/work/BrickLess/BrickLess/BrickLessTests/SportTabsTests.swift (in target 'BrickLessTests' from project 'BrickLess')
-	Testing project BrickLess with scheme BrickLess
-(3 failures)
+(no test log)
 ```
