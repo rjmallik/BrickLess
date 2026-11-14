@@ -2,7 +2,7 @@ import SwiftUI
 import MapKit
 import CoreLocation
 
-/// "Find Games Near You": a map of basketball courts and soccer fields.
+/// "Find Games Near You": a map of basketball courts.
 /// Courts come from OpenStreetMap (free, global, but only what volunteers
 /// mapped) plus community courts added by players. Tap a pin to see the
 /// court and book it. Apple Maps (MapKit) is the map itself, so no
