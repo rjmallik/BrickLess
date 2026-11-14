@@ -102,4 +102,58 @@ final class EventTests: XCTestCase {
         let past = makeEvent(id: "past", start: testNow.addingTimeInterval(-3600), end: testNow.addingTimeInterval(-1800))
         XCTAssertTrue(EventStore.upcomingEvents([past], now: testNow).isEmpty)
     }
+
+    // MARK: - History
+
+    func testPastEventsFiltersEndedAndSortsMostRecentFirst() {
+        let endedFirst = makeEvent(id: "ended-first", start: testNow.addingTimeInterval(-7200), end: testNow.addingTimeInterval(-3600))
+        let endedLater = makeEvent(id: "ended-later", start: testNow.addingTimeInterval(-3600), end: testNow.addingTimeInterval(-1800))
+        let ongoing = makeEvent(id: "ongoing", start: testNow.addingTimeInterval(-3600), end: testNow.addingTimeInterval(3600))
+        let upcoming = makeEvent(id: "upcoming", start: testNow.addingTimeInterval(3600), end: testNow.addingTimeInterval(7200))
+        let past = EventStore.pastEvents([upcoming, endedFirst, ongoing, endedLater], now: testNow)
+        XCTAssertEqual(past.compactMap { $0.id }, ["ended-later", "ended-first"])
+    }
+
+    func testPastEventsEmptyWhenNoneEnded() {
+        let upcoming = makeEvent(id: "upcoming", start: testNow.addingTimeInterval(3600), end: testNow.addingTimeInterval(7200))
+        XCTAssertTrue(EventStore.pastEvents([upcoming], now: testNow).isEmpty)
+    }
+
+    func testPastEventsIncludesGameEndingExactlyNow() {
+        let endingNow = makeEvent(id: "ending-now", start: testNow.addingTimeInterval(-3600), end: testNow)
+        XCTAssertEqual(EventStore.pastEvents([endingNow], now: testNow).compactMap { $0.id }, ["ending-now"])
+    }
+
+    func testEndedGameAppearsOnlyInHistory() {
+        let ended = makeEvent(id: "ended", start: testNow.addingTimeInterval(-7200), end: testNow.addingTimeInterval(-3600))
+        XCTAssertTrue(EventStore.upcomingEvents([ended], now: testNow).isEmpty)
+        XCTAssertEqual(EventStore.pastEvents([ended], now: testNow).compactMap { $0.id }, ["ended"])
+    }
+
+    func testUpcomingGameNeverInHistory() {
+        let upcoming = makeEvent(id: "upcoming", start: testNow.addingTimeInterval(3600), end: testNow.addingTimeInterval(7200))
+        XCTAssertTrue(EventStore.pastEvents([upcoming], now: testNow).isEmpty)
+        XCTAssertEqual(EventStore.upcomingEvents([upcoming], now: testNow).compactMap { $0.id }, ["upcoming"])
+    }
+
+    func testGameMovesFromUpcomingToHistoryAsTimePasses() {
+        let game = makeEvent(id: "game", start: testNow.addingTimeInterval(3600), end: testNow.addingTimeInterval(7200))
+        // Before it starts: upcoming, not history.
+        XCTAssertEqual(EventStore.upcomingEvents([game], now: testNow).compactMap { $0.id }, ["game"])
+        XCTAssertTrue(EventStore.pastEvents([game], now: testNow).isEmpty)
+        // After it ends: history, not upcoming.
+        let afterEnd = testNow.addingTimeInterval(7200)
+        XCTAssertTrue(EventStore.upcomingEvents([game], now: afterEnd).isEmpty)
+        XCTAssertEqual(EventStore.pastEvents([game], now: afterEnd).compactMap { $0.id }, ["game"])
+    }
+
+    func testIsEnded() {
+        // endTime in the past (relative to the real clock) is ended;
+        // endTime in the future is not. The epoch dates are fixed so
+        // this never flakes around "now".
+        let ended = makeEvent(id: "ended", start: Date(timeIntervalSince1970: 1_700_000_000), end: Date(timeIntervalSince1970: 1_700_003_600))
+        XCTAssertTrue(ended.isEnded)
+        let future = makeEvent(id: "future", start: Date(timeIntervalSince1970: 2_000_000_000), end: Date(timeIntervalSince1970: 2_000_003_600))
+        XCTAssertFalse(future.isEnded)
+    }
 }

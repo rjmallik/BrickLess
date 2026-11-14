@@ -30,6 +30,11 @@ struct GameEvent: Codable, Identifiable {
 
     var isFull: Bool { playerUids.count >= maxPlayers }
 
+    /// A game is done once its end time has passed. Derived from
+    /// endTime only — there is no status field to drift out of sync.
+    /// A finished game lives in History and nowhere else.
+    var isEnded: Bool { endTime <= Date() }
+
     func hasPlayer(_ uid: String) -> Bool { playerUids.contains(uid) }
 
     /// Join decision for one user against this snapshot. The check is
@@ -113,6 +118,15 @@ class EventStore: ObservableObject {
     /// listener's filter + sort, so the ordering rule is unit-tested.
     static func upcomingEvents(_ events: [GameEvent], now: Date) -> [GameEvent] {
         events.filter { $0.startTime > now }.sorted { $0.startTime < $1.startTime }
+    }
+
+    /// Games that have ended, most recently ended first. Pure version
+    /// of the History list's filter + sort, so the rule is unit-tested.
+    /// History is built from the signed-in user's own games (myEvents),
+    /// so callers pass that list, not every event: a finished game
+    /// appears only in History, never in Upcoming or My games.
+    static func pastEvents(_ events: [GameEvent], now: Date) -> [GameEvent] {
+        events.filter { $0.endTime <= now }.sorted { $0.endTime > $1.endTime }
     }
 
     /// Max writes in one Firestore batch. Deleting a game's chat has

@@ -44,8 +44,13 @@ struct EventDetailView: View {
                 Text("Hosted by \(liveEvent.creatorUsername)")
                     .font(.footnote).foregroundColor(.secondary)
 
-                // Join / Leave
-                if isPlayer {
+                // Join / Leave. A finished game is history: no joining
+                // or leaving, just the record (and the chat below,
+                // read-only).
+                if liveEvent.isEnded {
+                    Text("This game has ended.")
+                        .foregroundColor(.secondary)
+                } else if isPlayer {
                     Button("Leave game") {
                         errorMessage = nil
                         store.leaveEvent(liveEvent) { error in
@@ -113,18 +118,22 @@ struct EventDetailView: View {
                         }
                         .padding(.vertical, 2)
                     }
-                    HStack {
-                        TextField("Message the group…", text: $messageText)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                        Button("Send") {
-                            let text = messageText
-                            messageText = ""
-                            store.sendMessage(event: liveEvent, text: text,
-                                              senderUsername: session.profile?.username ?? "") { error in
-                                if let error { errorMessage = error }
+                    // A finished game's chat is a record: visible,
+                    // but no new messages.
+                    if !liveEvent.isEnded {
+                        HStack {
+                            TextField("Message the group…", text: $messageText)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                            Button("Send") {
+                                let text = messageText
+                                messageText = ""
+                                store.sendMessage(event: liveEvent, text: text,
+                                                  senderUsername: session.profile?.username ?? "") { error in
+                                    if let error { errorMessage = error }
+                                }
                             }
+                            .disabled(messageText.trimmingCharacters(in: .whitespaces).isEmpty)
                         }
-                        .disabled(messageText.trimmingCharacters(in: .whitespaces).isEmpty)
                     }
                 } else {
                     Text("Join the game to see the group chat and text the other players.")

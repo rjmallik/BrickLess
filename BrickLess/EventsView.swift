@@ -8,31 +8,57 @@ struct EventsView: View {
     var court: Court? = nil // when opened from a court, new games default to it
     @StateObject private var store = EventStore()
     @State private var showingCreate = false
-    @State private var showingMineOnly = false
+    @State private var selectedList = GamesList.all
+
+    /// Which games list the picker shows. History is the signed-in
+    /// user's own games that have ended — an ended game appears only
+    /// there, never in All or My games.
+    private enum GamesList: String, CaseIterable {
+        case all = "All games"
+        case mine = "My games"
+        case history = "History"
+    }
 
     private var shownEvents: [GameEvent] {
-        if showingMineOnly {
-            // My games: joined events that have not started yet.
-            store.myEvents.filter { $0.startTime > Date() }
-        } else {
+        switch selectedList {
+        case .all:
             store.upcomingEvents
+        case .mine:
+            // My games: joined events that have not ended yet — a game
+            // in progress still shows here, so it never vanishes from
+            // every list mid-game. Ended games are History only.
+            store.myEvents.filter { $0.endTime > Date() }
+        case .history:
+            // Finished games I created or joined, most recent first.
+            // myEvents is already only my games (playerUids contains me).
+            EventStore.pastEvents(store.myEvents, now: Date())
+        }
+    }
+
+    private var emptyMessage: String {
+        switch selectedList {
+        case .all:
+            "No upcoming games. Be the first to post one."
+        case .mine:
+            "You have not joined any games yet."
+        case .history:
+            "No completed games yet. Games you played will show up here."
         }
     }
 
     var body: some View {
         VStack(spacing: 0) {
-            Picker("Games", selection: $showingMineOnly) {
-                Text("All games").tag(false)
-                Text("My games").tag(true)
+            Picker("Games", selection: $selectedList) {
+                ForEach(GamesList.allCases, id: \.self) { list in
+                    Text(list.rawValue).tag(list)
+                }
             }
             .pickerStyle(.segmented)
             .padding()
 
             List {
                 if shownEvents.isEmpty {
-                    Text(showingMineOnly
-                         ? "You have not joined any games yet."
-                         : "No upcoming games. Be the first to post one.")
+                    Text(emptyMessage)
                         .foregroundColor(.secondary)
                 }
                 ForEach(shownEvents) { event in
