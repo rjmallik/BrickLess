@@ -27,6 +27,15 @@ struct EventsView: View {
         case all = "All games"
         case mine = "My games"
         case history = "History"
+
+        /// Big icon shown above the label in the list selector.
+        var icon: String {
+            switch self {
+            case .all: return "list.bullet"
+            case .mine: return "person.fill"
+            case .history: return "clock.fill"
+            }
+        }
     }
 
     private var shownEvents: [GameEvent] {
@@ -60,14 +69,33 @@ struct EventsView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            SportTabBar(selected: $selectedSport)
+            SportTabBar(selected: $selectedSport, vertical: true)
                 .padding(.top, 8)
-            Picker("Games", selection: $selectedList) {
+            // Big icon-above-label selector instead of a text-only
+            // segmented picker. Same three lists, same behaviour:
+            // All = upcoming, My = joined and not ended, History = ended.
+            HStack(spacing: 12) {
                 ForEach(GamesList.allCases, id: \.self) { list in
-                    Text(list.rawValue).tag(list)
+                    Button {
+                        selectedList = list
+                    } label: {
+                        VStack(spacing: 4) {
+                            Image(systemName: list.icon)
+                                .font(.system(size: 28))
+                            Text(list.rawValue)
+                                .font(.subheadline.bold())
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(selectedList == list ? PlayMatchColors.brand : Color(.systemGray5))
+                        .foregroundColor(selectedList == list ? .white : .primary)
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                    }
+                    .buttonStyle(.plain)
                 }
             }
-            .pickerStyle(.segmented)
             .padding()
 
             List {

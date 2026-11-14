@@ -5,7 +5,7 @@ Last updated: Nov 13, 2026. Code is on `main` at rjmallik/PlayMatch. Firebase pr
 ## Already done in code
 
 - Real accounts: Firebase Auth email + username/password, unique usernames, mandatory profile setup, in-app Delete Account (Guideline 5.1.1(v)).
-- Safety: username/display-name filter, Block and Report, reports stored for console review (Guideline 1.2). Support contact in My Profile: rutujit97872@gmail.com.
+- Safety: username/display-name filter, Block and Report, reports stored for console review (Guideline 1.2). Support contact: [support email] (not published in the app yet — a dedicated support email will be added later).
 - Scale: community courts are fetched by ~1 km grid cell around the user, never the whole collection. Friends search is capped at 20 results. Map calls are cached per grid cell. No analytics, no ads, no tracking.
 - Rules fixes (Nov 8): Delete Account can now actually delete the profile doc (it was blocked, which left the username reserved forever), and the booking overlap check can read other players' confirmed bookings for the same court (it silently saw nothing before, so double-bookings were possible). Booking docs hold only user IDs, court IDs and times.
 - Indexes: `firestore.indexes.json` has the composite indexes for My Bookings and the overlap check and the friends lists. Deploy with the rules (below); indexes take a few minutes to build the first time.

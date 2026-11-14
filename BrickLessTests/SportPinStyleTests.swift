@@ -12,7 +12,7 @@ final class SportPinStyleTests: XCTestCase {
         // SF Symbol. Every sport gets its own distinct color.
         let expected: [(tag: String, symbol: String, color: Color)] = [
             ("basketball", "basketball.fill", PlayMatchColors.basketball),
-            ("soccer", "soccerball.fill", PlayMatchColors.soccer),
+            ("soccer", "soccerball", PlayMatchColors.soccer),
             ("football", "football.fill", PlayMatchColors.football),
             ("tennis", "tennisball.fill", PlayMatchColors.tennis),
             ("pickleball", "figure.pickleball", PlayMatchColors.pickleball),

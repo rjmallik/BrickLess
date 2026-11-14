@@ -1,0 +1,23 @@
+{
+  "images" : [
+    {
+      "filename" : "PlayMatch app icon, 1024x1024.png",
+      "idiom" : "universal",
+      "scale" : "1x"
+    },
+    {
+      "filename" : "PlayMatch app icon, 1024x1024.png",
+      "idiom" : "universal",
+      "scale" : "2x"
+    },
+    {
+      "filename" : "PlayMatch app icon, 1024x1024.png",
+      "idiom" : "universal",
+      "scale" : "3x"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

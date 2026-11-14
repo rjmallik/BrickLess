@@ -236,13 +236,48 @@ class SessionStore: ObservableObject {
 
     // MARK: - Sign in / out
 
+    /// The message shown when sign-in cannot start because a field
+    /// is blank. Pure so the unit tests cover the exact message a
+    /// failed sign-in shows when Login is tapped with an empty field.
+    static func signInValidationError(email: String, password: String) -> String? {
+        if email.trimmingCharacters(in: .whitespaces).isEmpty || password.isEmpty {
+            return "Enter your email and password."
+        }
+        return nil
+    }
+
+    /// The Login button's label: it turns into an in-progress label
+    /// the moment a sign-in starts, so the tap visibly lands. Pure
+    /// so the unit tests pin the exact strings.
+    static func loginButtonTitle(isLoading: Bool) -> String {
+        isLoading ? "Signing in…" : "Login"
+    }
+
+    /// Whether the Login button ignores taps: while a sign-in is in
+    /// flight, so extra taps cannot start a duplicate request. Pure
+    /// so the unit tests pin the rule.
+    static func loginButtonDisabled(isLoading: Bool) -> Bool {
+        isLoading
+    }
+
     /// Accepts an email or a username, plus the password.
     /// `completion` reports whether the sign-in succeeded, so the
     /// caller can apply the Remember-me choice only on success.
+    /// Every failure sets loginError, so the login screen always has
+    /// a message to show: a blank field, a Firebase error, or a
+    /// duplicate tap while one is already in flight (which reports
+    /// failure without starting a second request or clearing the
+    /// in-flight attempt's error).
     func signIn(email: String, password: String, completion: (@escaping (Bool) -> Void)? = nil) {
-        let input = email.trimmingCharacters(in: .whitespaces)
-        guard !input.isEmpty, !password.isEmpty else {
-            loginError = "Enter your email and password."
+        if let error = Self.signInValidationError(email: email, password: password) {
+            loginError = error
+            completion?(false)
+            return
+        }
+        // Extra taps while a sign-in is already in flight are
+        // ignored: on the login screen isLoading is only ever true
+        // for a sign-in, so this never blocks a fresh attempt.
+        guard !isLoading else {
             completion?(false)
             return
         }
@@ -253,7 +288,7 @@ class SessionStore: ObservableObject {
         // username to an email needs a public username-to-email mapping,
         // which would expose every user's email to anyone who looks a
         // name up. The email lives in Firebase Auth only.
-        signInWithEmail(input.lowercased(), password: password, completion: completion)
+        signInWithEmail(email.trimmingCharacters(in: .whitespaces).lowercased(), password: password, completion: completion)
     }
 
     /// The login saved by Remember me, if any (Keychain). The login
@@ -275,15 +310,21 @@ class SessionStore: ObservableObject {
     private func signInWithEmail(_ email: String, password: String, completion: (@escaping (Bool) -> Void)? = nil) {
         Auth.auth().signIn(withEmail: email, password: password) { [weak self] _, error in
             guard let self else { return }
-            self.isLoading = false
-            if let error {
-                self.loginError = Self.friendlyError(error)
-                completion?(false)
-                return
+            // Deliver the result on the main queue: the error message
+            // and the spinner going away are @Published writes, and a
+            // callback that lands off the main thread can leave the
+            // login screen showing neither the error nor the button.
+            DispatchQueue.main.async {
+                self.isLoading = false
+                if let error {
+                    self.loginError = Self.friendlyError(error)
+                    completion?(false)
+                    return
+                }
+                self.loginError = nil
+                completion?(true)
+                // The auth listener fetches the profile and flips isLoggedIn.
             }
-            self.loginError = nil
-            completion?(true)
-            // The auth listener fetches the profile and flips isLoggedIn.
         }
     }
 

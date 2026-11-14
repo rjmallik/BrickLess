@@ -52,6 +52,9 @@
 		91B10018F1A2000100C3D001 /* CourtMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B10017F1A2000100C3D001 /* CourtMapView.swift */; };
 		85992BE0096F0B8871853D99 /* SportTabs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F56B1A24BECC8B646F1F702 /* SportTabs.swift */; };
 		5936078BCCA37A8BEA94B849 /* ChatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9A5DE6F5BBC23BAB7A36B01 /* ChatsView.swift */; };
+		CEA02CB450FF905C9A5E9198 /* DirectChatStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5488CF7EB9E2F22C46E9E640 /* DirectChatStore.swift */; };
+		F9E01208FE975C4845A9B3E9 /* DirectChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EFC50226D525D457567CD2B /* DirectChatView.swift */; };
+		F42520EA782038DFAEBB6586 /* StartChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EAF81F4E6367C58035DD226 /* StartChatView.swift */; };
 		91B10016F1A2000100C3D001 /* CourtStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B10015F1A2000100C3D001 /* CourtStore.swift */; };
 		91B10014F1A2000100C3D001 /* FriendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B10013F1A2000100C3D001 /* FriendsView.swift */; };
 		91B10012F1A2000100C3D001 /* FriendsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B10011F1A2000100C3D001 /* FriendsStore.swift */; };
@@ -64,6 +67,9 @@
 		DBC4E421E6338E7B04859C14 /* RememberedCredentials.swift in Sources */ = {isa = PBXBuildFile; fileRef = 880AF6BA7A5F821A19852640 /* RememberedCredentials.swift */; };
 		9BFFB67D8AECDC9275EBB853 /* BookingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9C79BAAA898A534FF2558EC /* BookingTests.swift */; };
 		EB626D8F61B9E542FFF0BBA2 /* ChatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AA2E5A6893D4D5D3E380F72 /* ChatTests.swift */; };
+		7A7CC5F67E89AE37C2864EC0 /* DirectChatThreadTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA7170B2BFAA4D8E0FD5C777 /* DirectChatThreadTests.swift */; };
+		196A6DD76ADA4B7C5447A048 /* DirectChatPickerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42FA021707AD1E5296230101 /* DirectChatPickerTests.swift */; };
+		DF64C2F46ACC75ACD89073A3 /* DirectChatMessageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14559D3C5C9F30CCC396A406 /* DirectChatMessageTests.swift */; };
 		A4FC153A53780FC8E5EAF78E /* CourtTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9CC7F8E3A3379E571796F87 /* CourtTests.swift */; };
 		ED7A7BF2136A93BF1620DF19 /* SessionLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2918022CC8FAB5000A33DE9 /* SessionLaunchTests.swift */; };
 		386AAB274743290F537D64E9 /* SportTabsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35613C3C4292D3084DC5213B /* SportTabsTests.swift */; };
@@ -88,11 +94,14 @@
 		30416261C83775E58EED8B27 /* HeightFormattingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F980F853CBB4F53D0BB0FF5A /* HeightFormattingTests.swift */; };
 		13BD74C94518553F5CF8BE24 /* HighestLevelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA6FE2A0C262BB4D78362E29 /* HighestLevelTests.swift */; };
 		C679297A3A7E623529262FEE /* LaunchScopeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5586B0A7844D01D3AB9F5B00 /* LaunchScopeTests.swift */; };
+		2C48CE1526B96187D8AFE42D /* LoadingViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E04EA1EFD55DF5886B4ED1D2 /* LoadingViewTests.swift */; };
 		F6615A4BF679BEEB4487A538 /* NameDenylistTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AAC1857DF7542CC8D4FA558 /* NameDenylistTests.swift */; };
 		F852780AA72C307268E633B6 /* PerSportProfileTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBEF426A374454E65E13FC7C /* PerSportProfileTests.swift */; };
 		6576DBC9E33B6E2D3E41DD61 /* ProfileCityMapTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5124259A3ED77ED78A6DDEB8 /* ProfileCityMapTests.swift */; };
 		3A3468A56912AFEE68E99B02 /* ProfilePhotoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00E6DB8C8EDA2AE6CC1F9B4 /* ProfilePhotoTests.swift */; };
 		607AC3F4D79862A7D931BF53 /* RememberMeCredentialsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A618A88D5EFA83A6E6E33D04 /* RememberMeCredentialsTests.swift */; };
+		D85A5B7F6BE36E06A44386BB /* LoginErrorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6389F5975D323760A74C336 /* LoginErrorTests.swift */; };
+		185AE830D23BCEC65BCEC4FF /* LoginLoadingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 059766AE9AC3179860251151 /* LoginLoadingTests.swift */; };
 		49EF0D51361986B5E3435AAA /* SportDefaultTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CE45ADB5279FA38D1FAA4D4 /* SportDefaultTests.swift */; };
 		A43295C0DAF75F773F89B002 /* SportFilteringTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E37D34FC182DD596B5F96B8 /* SportFilteringTests.swift */; };
 		8A645676F1B9978F691E1632 /* SportPinStyleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E26294532746DDCBC2EA4F2B /* SportPinStyleTests.swift */; };
@@ -101,6 +110,8 @@
 		2CF85852406A3DC66C6709D6 /* VenueBookingLinkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CD6B501FE04377EE4AD32BD /* VenueBookingLinkTests.swift */; };
 		F7A9B3CC788EFEF365D8D5BF /* VenueLoadingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28657F6F3FA8D17F77E2BDDF /* VenueLoadingTests.swift */; };
 		D6B38012047AE9C3EF8DC19A /* VenueSearchRadiusTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B75DEE2C4B2E140CA52C5A91 /* VenueSearchRadiusTests.swift */; };
+		A31C67CCB28A4F89AC24780D /* VenueFetchRetryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC568B15BE2CDFC878F35F2 /* VenueFetchRetryTests.swift */; };
+		FBBA896582488DA61284EB30 /* OverpassRequestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFBCA9C6C1EF6CAC772CDECE /* OverpassRequestTests.swift */; };
 		032E75E2BA01487AA41D17D7 /* VenueWordTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE62A61717E6A671B1792725 /* VenueWordTests.swift */; };
 		1A78F85F1578F6B102A14372 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 9121B81D2BD88B3C002F5793 /* FirebaseAuth */; };
 /* End PBXBuildFile section */
@@ -136,6 +147,9 @@
 		91B10017F1A2000100C3D001 /* CourtMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourtMapView.swift; sourceTree = "<group>"; };
 		1F56B1A24BECC8B646F1F702 /* SportTabs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SportTabs.swift; sourceTree = "<group>"; };
 		F9A5DE6F5BBC23BAB7A36B01 /* ChatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatsView.swift; sourceTree = "<group>"; };
+		5488CF7EB9E2F22C46E9E640 /* DirectChatStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectChatStore.swift; sourceTree = "<group>"; };
+		1EFC50226D525D457567CD2B /* DirectChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectChatView.swift; sourceTree = "<group>"; };
+		3EAF81F4E6367C58035DD226 /* StartChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartChatView.swift; sourceTree = "<group>"; };
 		91B10015F1A2000100C3D001 /* CourtStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourtStore.swift; sourceTree = "<group>"; };
 		91B10013F1A2000100C3D001 /* FriendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsView.swift; sourceTree = "<group>"; };
 		91B10011F1A2000100C3D001 /* FriendsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsStore.swift; sourceTree = "<group>"; };
@@ -148,6 +162,9 @@
 		880AF6BA7A5F821A19852640 /* RememberedCredentials.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RememberedCredentials.swift; sourceTree = "<group>"; };
 		D9C79BAAA898A534FF2558EC /* BookingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookingTests.swift; sourceTree = "<group>"; };
 		4AA2E5A6893D4D5D3E380F72 /* ChatTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatTests.swift; sourceTree = "<group>"; };
+		BA7170B2BFAA4D8E0FD5C777 /* DirectChatThreadTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectChatThreadTests.swift; sourceTree = "<group>"; };
+		42FA021707AD1E5296230101 /* DirectChatPickerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectChatPickerTests.swift; sourceTree = "<group>"; };
+		14559D3C5C9F30CCC396A406 /* DirectChatMessageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectChatMessageTests.swift; sourceTree = "<group>"; };
 		E9CC7F8E3A3379E571796F87 /* CourtTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourtTests.swift; sourceTree = "<group>"; };
 		B2918022CC8FAB5000A33DE9 /* SessionLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionLaunchTests.swift; sourceTree = "<group>"; };
 		35613C3C4292D3084DC5213B /* SportTabsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SportTabsTests.swift; sourceTree = "<group>"; };
@@ -172,11 +189,14 @@
 		F980F853CBB4F53D0BB0FF5A /* HeightFormattingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeightFormattingTests.swift; sourceTree = "<group>"; };
 		AA6FE2A0C262BB4D78362E29 /* HighestLevelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HighestLevelTests.swift; sourceTree = "<group>"; };
 		5586B0A7844D01D3AB9F5B00 /* LaunchScopeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchScopeTests.swift; sourceTree = "<group>"; };
+		E04EA1EFD55DF5886B4ED1D2 /* LoadingViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingViewTests.swift; sourceTree = "<group>"; };
 		6AAC1857DF7542CC8D4FA558 /* NameDenylistTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NameDenylistTests.swift; sourceTree = "<group>"; };
 		BBEF426A374454E65E13FC7C /* PerSportProfileTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerSportProfileTests.swift; sourceTree = "<group>"; };
 		5124259A3ED77ED78A6DDEB8 /* ProfileCityMapTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileCityMapTests.swift; sourceTree = "<group>"; };
 		F00E6DB8C8EDA2AE6CC1F9B4 /* ProfilePhotoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfilePhotoTests.swift; sourceTree = "<group>"; };
 		A618A88D5EFA83A6E6E33D04 /* RememberMeCredentialsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RememberMeCredentialsTests.swift; sourceTree = "<group>"; };
+		D6389F5975D323760A74C336 /* LoginErrorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginErrorTests.swift; sourceTree = "<group>"; };
+		059766AE9AC3179860251151 /* LoginLoadingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginLoadingTests.swift; sourceTree = "<group>"; };
 		6CE45ADB5279FA38D1FAA4D4 /* SportDefaultTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SportDefaultTests.swift; sourceTree = "<group>"; };
 		9E37D34FC182DD596B5F96B8 /* SportFilteringTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SportFilteringTests.swift; sourceTree = "<group>"; };
 		E26294532746DDCBC2EA4F2B /* SportPinStyleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SportPinStyleTests.swift; sourceTree = "<group>"; };
@@ -185,6 +205,8 @@
 		4CD6B501FE04377EE4AD32BD /* VenueBookingLinkTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VenueBookingLinkTests.swift; sourceTree = "<group>"; };
 		28657F6F3FA8D17F77E2BDDF /* VenueLoadingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VenueLoadingTests.swift; sourceTree = "<group>"; };
 		B75DEE2C4B2E140CA52C5A91 /* VenueSearchRadiusTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VenueSearchRadiusTests.swift; sourceTree = "<group>"; };
+		6AC568B15BE2CDFC878F35F2 /* VenueFetchRetryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VenueFetchRetryTests.swift; sourceTree = "<group>"; };
+		AFBCA9C6C1EF6CAC772CDECE /* OverpassRequestTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverpassRequestTests.swift; sourceTree = "<group>"; };
 		AE62A61717E6A671B1792725 /* VenueWordTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VenueWordTests.swift; sourceTree = "<group>"; };
 		5961ADB46AF2E7167C060598 /* BrickLessTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BrickLessTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -272,6 +294,9 @@
 				91B10017F1A2000100C3D001 /* CourtMapView.swift */,
 				1F56B1A24BECC8B646F1F702 /* SportTabs.swift */,
 				F9A5DE6F5BBC23BAB7A36B01 /* ChatsView.swift */,
+				5488CF7EB9E2F22C46E9E640 /* DirectChatStore.swift */,
+				1EFC50226D525D457567CD2B /* DirectChatView.swift */,
+				3EAF81F4E6367C58035DD226 /* StartChatView.swift */,
 				91B10015F1A2000100C3D001 /* CourtStore.swift */,
 				91B10013F1A2000100C3D001 /* FriendsView.swift */,
 				91B10011F1A2000100C3D001 /* FriendsStore.swift */,
@@ -301,6 +326,9 @@
 			children = (
 				D9C79BAAA898A534FF2558EC /* BookingTests.swift */,
 				4AA2E5A6893D4D5D3E380F72 /* ChatTests.swift */,
+				BA7170B2BFAA4D8E0FD5C777 /* DirectChatThreadTests.swift */,
+				42FA021707AD1E5296230101 /* DirectChatPickerTests.swift */,
+				14559D3C5C9F30CCC396A406 /* DirectChatMessageTests.swift */,
 				E9CC7F8E3A3379E571796F87 /* CourtTests.swift */,
 				B2918022CC8FAB5000A33DE9 /* SessionLaunchTests.swift */,
 				35613C3C4292D3084DC5213B /* SportTabsTests.swift */,
@@ -325,11 +353,14 @@
 				F980F853CBB4F53D0BB0FF5A /* HeightFormattingTests.swift */,
 				AA6FE2A0C262BB4D78362E29 /* HighestLevelTests.swift */,
 				5586B0A7844D01D3AB9F5B00 /* LaunchScopeTests.swift */,
+				E04EA1EFD55DF5886B4ED1D2 /* LoadingViewTests.swift */,
 				6AAC1857DF7542CC8D4FA558 /* NameDenylistTests.swift */,
 				BBEF426A374454E65E13FC7C /* PerSportProfileTests.swift */,
 				5124259A3ED77ED78A6DDEB8 /* ProfileCityMapTests.swift */,
 				F00E6DB8C8EDA2AE6CC1F9B4 /* ProfilePhotoTests.swift */,
 				A618A88D5EFA83A6E6E33D04 /* RememberMeCredentialsTests.swift */,
+				D6389F5975D323760A74C336 /* LoginErrorTests.swift */,
+				059766AE9AC3179860251151 /* LoginLoadingTests.swift */,
 				6CE45ADB5279FA38D1FAA4D4 /* SportDefaultTests.swift */,
 				9E37D34FC182DD596B5F96B8 /* SportFilteringTests.swift */,
 				E26294532746DDCBC2EA4F2B /* SportPinStyleTests.swift */,
@@ -338,6 +369,8 @@
 				4CD6B501FE04377EE4AD32BD /* VenueBookingLinkTests.swift */,
 				28657F6F3FA8D17F77E2BDDF /* VenueLoadingTests.swift */,
 				B75DEE2C4B2E140CA52C5A91 /* VenueSearchRadiusTests.swift */,
+				6AC568B15BE2CDFC878F35F2 /* VenueFetchRetryTests.swift */,
+				AFBCA9C6C1EF6CAC772CDECE /* OverpassRequestTests.swift */,
 				AE62A61717E6A671B1792725 /* VenueWordTests.swift */,
 			);
 			path = BrickLessTests;
@@ -499,6 +532,9 @@
 				91B10018F1A2000100C3D001 /* CourtMapView.swift in Sources */,
 				85992BE0096F0B8871853D99 /* SportTabs.swift in Sources */,
 				5936078BCCA37A8BEA94B849 /* ChatsView.swift in Sources */,
+				CEA02CB450FF905C9A5E9198 /* DirectChatStore.swift in Sources */,
+				F9E01208FE975C4845A9B3E9 /* DirectChatView.swift in Sources */,
+				F42520EA782038DFAEBB6586 /* StartChatView.swift in Sources */,
 				91B10016F1A2000100C3D001 /* CourtStore.swift in Sources */,
 				91B10014F1A2000100C3D001 /* FriendsView.swift in Sources */,
 				91B10012F1A2000100C3D001 /* FriendsStore.swift in Sources */,
@@ -518,6 +554,9 @@
 			files = (
 				9BFFB67D8AECDC9275EBB853 /* BookingTests.swift in Sources */,
 				EB626D8F61B9E542FFF0BBA2 /* ChatTests.swift in Sources */,
+				7A7CC5F67E89AE37C2864EC0 /* DirectChatThreadTests.swift in Sources */,
+				196A6DD76ADA4B7C5447A048 /* DirectChatPickerTests.swift in Sources */,
+				DF64C2F46ACC75ACD89073A3 /* DirectChatMessageTests.swift in Sources */,
 				A4FC153A53780FC8E5EAF78E /* CourtTests.swift in Sources */,
 				ED7A7BF2136A93BF1620DF19 /* SessionLaunchTests.swift in Sources */,
 				386AAB274743290F537D64E9 /* SportTabsTests.swift in Sources */,
@@ -542,11 +581,14 @@
 				30416261C83775E58EED8B27 /* HeightFormattingTests.swift in Sources */,
 				13BD74C94518553F5CF8BE24 /* HighestLevelTests.swift in Sources */,
 				C679297A3A7E623529262FEE /* LaunchScopeTests.swift in Sources */,
+				2C48CE1526B96187D8AFE42D /* LoadingViewTests.swift in Sources */,
 				F6615A4BF679BEEB4487A538 /* NameDenylistTests.swift in Sources */,
 				F852780AA72C307268E633B6 /* PerSportProfileTests.swift in Sources */,
 				6576DBC9E33B6E2D3E41DD61 /* ProfileCityMapTests.swift in Sources */,
 				3A3468A56912AFEE68E99B02 /* ProfilePhotoTests.swift in Sources */,
 				607AC3F4D79862A7D931BF53 /* RememberMeCredentialsTests.swift in Sources */,
+				D85A5B7F6BE36E06A44386BB /* LoginErrorTests.swift in Sources */,
+				185AE830D23BCEC65BCEC4FF /* LoginLoadingTests.swift in Sources */,
 				49EF0D51361986B5E3435AAA /* SportDefaultTests.swift in Sources */,
 				A43295C0DAF75F773F89B002 /* SportFilteringTests.swift in Sources */,
 				8A645676F1B9978F691E1632 /* SportPinStyleTests.swift in Sources */,
@@ -555,6 +597,8 @@
 				2CF85852406A3DC66C6709D6 /* VenueBookingLinkTests.swift in Sources */,
 				F7A9B3CC788EFEF365D8D5BF /* VenueLoadingTests.swift in Sources */,
 				D6B38012047AE9C3EF8DC19A /* VenueSearchRadiusTests.swift in Sources */,
+				A31C67CCB28A4F89AC24780D /* VenueFetchRetryTests.swift in Sources */,
+				FBBA896582488DA61284EB30 /* OverpassRequestTests.swift in Sources */,
 				032E75E2BA01487AA41D17D7 /* VenueWordTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

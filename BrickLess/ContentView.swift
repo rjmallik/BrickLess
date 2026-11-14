@@ -14,23 +14,17 @@ struct ContentView: View {
                     MainAppView(session: session)
                 }
             } else {
-                VStack {
-                    if session.isLoading {
-                        // Signing in: a spinner only. The launch splash
-                        // (LoadingView, in PlayMatchApp) must not be reused
-                        // here: after 2s it opens a second ContentView with
-                        // a second, empty SessionStore.
-                        ProgressView("Signing you in…")
-                            .padding()
-                    } else {
-                        // Show the LoginView. It displays session.loginError
-                        // itself (via the errorMessage binding), so this
-                        // view must not print it again underneath.
-                        LoginView(session: session, errorMessage: $session.loginError)
-                    }
-                }
-                .appBackground()
-                .navigationBarHidden(true) // Hide navigation bar
+                // The login form stays mounted while signing in:
+                // LoginView shows its own inline spinner and disables
+                // its button, so the typed email/password and the red
+                // error message survive the attempt. The old code
+                // swapped the whole form out for a bare spinner while
+                // isLoading: that destroyed the typed credentials on
+                // every attempt and hid the error label while signing
+                // in, so a failed sign-in came back as an empty form
+                // with no message.
+                LoginView(session: session, errorMessage: $session.loginError)
+                    .navigationBarHidden(true) // Hide navigation bar
             }
         }
         .navigationViewStyle(StackNavigationViewStyle()) // Use stack navigation style to handle navigation views correctly

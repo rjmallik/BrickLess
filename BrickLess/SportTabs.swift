@@ -111,24 +111,73 @@ enum SportTabs {
         return "basketball"
     }
 
+    /// The icons shown together on the All chip, one per launch
+    /// sport in tab order: the same symbol each sport's own chip
+    /// shows, so the cluster always stays in sync with the chips
+    /// (including the soccer symbol below). Never the
+    /// basketball-court icon: the All chip shows all six sports,
+    /// not one court. Pure so it is unit-testable.
+    static var allChipSymbols: [String] {
+        sports.map { pinStyle(forTag: $0.tag).symbol }
+    }
+
     /// The map pin for a sport: the white SF Symbol drawn in the pin
-    /// and the pin's color. The four ball sports use their ball
+    /// and the pin's color. The ball sports use their ball
     /// symbol; pickleball, table tennis and golf use their figure
     /// symbol, because Apple ships no ball-only symbol for them.
     /// Golf is not open yet (phase 4) but is mapped so it is ready.
     /// "multi" is a pitch serving several sports, shown with a
     /// runner. Unknown tags fall back to basketball. Pure so it is
     /// unit-testable.
+    /// NOTE: soccer uses the base "soccerball", NOT
+    /// "soccerball.fill": that .fill variant does not ship on the
+    /// deployment target, and SwiftUI renders an unknown
+    /// systemName as nothing (no error, no placeholder), which is
+    /// why the Soccer chip used to show its label with no ball
+    /// at all. The base name is long-established and renders
+    /// everywhere the app runs.
+    /// NOTE: map pins only. The loading indicator must NOT use this
+    /// mapping — it uses loadingBallStyle(forTag:) below, which is
+    /// ball-only (no figure.* symbols, which can render blank on
+    /// iOS versions that do not ship them).
     static func pinStyle(forTag tag: String) -> (symbol: String, color: Color) {
         switch tag {
         case "basketball": return ("basketball.fill", PlayMatchColors.basketball)
-        case "soccer": return ("soccerball.fill", PlayMatchColors.soccer)
+        case "soccer": return ("soccerball", PlayMatchColors.soccer)
         case "football": return ("football.fill", PlayMatchColors.football)
         case "tennis": return ("tennisball.fill", PlayMatchColors.tennis)
         case "pickleball": return ("figure.pickleball", PlayMatchColors.pickleball)
         case "table_tennis": return ("figure.table.tennis", PlayMatchColors.tableTennis)
         case "golf": return ("figure.golf", PlayMatchColors.golf)
         case "multi": return ("figure.run", PlayMatchColors.multi)
+        default: return ("basketball.fill", PlayMatchColors.basketball)
+        }
+    }
+
+    /// The loading-indicator icon for a sport: a sports BALL only,
+    /// never a person. The four ball sports use their own ball
+    /// symbol; pickleball, table tennis and golf have no ball-only
+    /// SF Symbol, so they use the generic ball "circle.fill" in
+    /// their own sport color (the color is what tells them apart
+    /// while loading). Only long-established symbols are used, so
+    /// the icon renders on every iOS version — a symbol the OS
+    /// does not ship renders as nothing, which is how the loading
+    /// indicator used to show no icon at all on some steps.
+    /// Soccer uses the base "soccerball" for that reason (see
+    /// pinStyle above): "soccerball.fill" does not ship, so the
+    /// soccer step of the loading cycle used to render blank.
+    /// "multi" is not in the loading cycle; it falls back to
+    /// basketball like any unknown tag. The symbol is never empty.
+    /// Pure so it is unit-testable.
+    static func loadingBallStyle(forTag tag: String) -> (symbol: String, color: Color) {
+        switch tag {
+        case "basketball": return ("basketball.fill", PlayMatchColors.basketball)
+        case "soccer": return ("soccerball", PlayMatchColors.soccer)
+        case "football": return ("football.fill", PlayMatchColors.football)
+        case "tennis": return ("tennisball.fill", PlayMatchColors.tennis)
+        case "pickleball": return ("circle.fill", PlayMatchColors.pickleball)
+        case "table_tennis": return ("circle.fill", PlayMatchColors.tableTennis)
+        case "golf": return ("circle.fill", PlayMatchColors.golf)
         default: return ("basketball.fill", PlayMatchColors.basketball)
         }
     }
@@ -188,8 +237,11 @@ extension View {
 /// Horizontal scrollable sport chips: All + the six launch sports.
 /// The selected chip is filled; the rest are quiet. Used at the top
 /// of the Location and Events tabs so each sport has its own view.
+/// With `vertical` (Events tab only) each chip is bigger, with the
+/// sport icon on top and the label underneath it.
 struct SportTabBar: View {
     @Binding var selected: String
+    var vertical: Bool = false
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
@@ -203,17 +255,78 @@ struct SportTabBar: View {
         }
     }
 
+    /// The six sport icons for the All chip, as a small cluster.
+    /// `perRow` icons per row at `iconSize` points: the vertical
+    /// (Events) chip uses 3 per row so the cluster is two rows of
+    /// three at roughly the same height as the other chips' single
+    /// 30pt icon; the horizontal (Location) chip uses all 6 in one
+    /// row at the small size its icons already are. The icons
+    /// inherit the chip's foreground color (white when selected,
+    /// primary when not), like the single icons they replace.
+    private func allSportsCluster(iconSize: CGFloat, perRow: Int, spacing: CGFloat) -> some View {
+        let symbols = SportTabs.allChipSymbols
+        let rows: [[String]] = stride(from: 0, to: symbols.count, by: perRow).map {
+            Array(symbols[$0..<min($0 + perRow, symbols.count)])
+        }
+        return VStack(spacing: spacing) {
+            ForEach(rows, id: \.self) { row in
+                HStack(spacing: spacing) {
+                    ForEach(row, id: \.self) { symbol in
+                        Image(systemName: symbol)
+                            .font(.system(size: iconSize))
+                    }
+                }
+            }
+        }
+    }
+
     private func chip(tag: String, label: String) -> some View {
         Button {
             selected = tag
         } label: {
-            Label(label, systemImage: tag == SportTabs.allTag ? "sportscourt.fill" : SportTabs.pinStyle(forTag: tag).symbol)
-                .font(.subheadline.bold())
-                .padding(.horizontal, 14)
-                .padding(.vertical, 8)
+            if vertical {
+                // Events tab: big icon on top, label underneath.
+                // The All chip shows all six sport icons together
+                // as a small cluster instead of the basketball
+                // court icon; the other chips keep their single
+                // 30pt ball icon.
+                VStack(spacing: 4) {
+                    if tag == SportTabs.allTag {
+                        allSportsCluster(iconSize: 14, perRow: 3, spacing: 3)
+                    } else {
+                        Image(systemName: SportTabs.pinStyle(forTag: tag).symbol)
+                            .font(.system(size: 30))
+                    }
+                    Text(label)
+                        .font(.caption.bold())
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                }
+                .frame(minWidth: 72)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 10)
                 .background(selected == tag ? SportTabs.color(forTag: tag) : Color(.systemGray5))
                 .foregroundColor(selected == tag ? .white : .primary)
-                .clipShape(Capsule())
+                .clipShape(RoundedRectangle(cornerRadius: 14))
+            } else {
+                // Location tab: compact horizontal chip. The All
+                // chip shows the same six-icon cluster in one small
+                // row instead of the basketball court icon.
+                HStack(spacing: 6) {
+                    if tag == SportTabs.allTag {
+                        allSportsCluster(iconSize: 11, perRow: 6, spacing: 2)
+                    } else {
+                        Image(systemName: SportTabs.pinStyle(forTag: tag).symbol)
+                    }
+                    Text(label)
+                }
+                    .font(.subheadline.bold())
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(selected == tag ? SportTabs.color(forTag: tag) : Color(.systemGray5))
+                    .foregroundColor(selected == tag ? .white : .primary)
+                    .clipShape(Capsule())
+            }
         }
         .buttonStyle(.plain)
     }

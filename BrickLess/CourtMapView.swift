@@ -105,7 +105,17 @@ struct CourtMapView: View {
             return
         }
         let key = CityGeocoder.normalizedCity(rawCity)
-        guard key != lastCenteredCity else { return }
+        if key == lastCenteredCity {
+            // Already centred on this city: no need to re-centre or
+            // re-geocode. But if the venues fetch for it failed
+            // (Overpass was unreachable or at capacity), the map is
+            // sitting on an empty city — retry the fetch instead of
+            // staying empty until the city string changes.
+            if let coordinate = profileCityCoordinate, store.lastFetchFailed {
+                store.fetchCourts(around: coordinate)
+            }
+            return
+        }
         cityGeocoder.coordinate(for: rawCity) { coordinate in
             // The city may have changed while geocoding; only apply a
             // result that still matches the current profile city.
@@ -229,6 +239,25 @@ struct CourtMapView: View {
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
+                    // The venues fetch failed (Overpass unreachable
+                    // or at capacity): say so, with a retry. Without
+                    // this the map just sits empty and looks like
+                    // the city has no courts.
+                    if let errorMessage = store.errorMessage {
+                        HStack(spacing: 8) {
+                            Text(errorMessage)
+                                .font(.caption)
+                                .foregroundColor(.red)
+                                .multilineTextAlignment(.leading)
+                            Button("Try again") {
+                                store.fetchCourts(around: profileCityCoordinate
+                                    ?? cameraPosition.region?.center
+                                    ?? CLLocationCoordinate2D(latitude: 47.6062, longitude: -122.3321))
+                            }
+                            .font(.caption.bold())
+                            .foregroundColor(PlayMatchColors.brand)
+                        }
+                    }
                     SportTabBar(selected: $selectedSport)
                         .padding(.top, 4)
                 }
@@ -326,9 +355,13 @@ struct CourtMapView: View {
     }
 }
 
-/// The venue loading cycle: which sports ball shows, and whether
-/// the line reads "Finding…" or "Loading…", at each second of a
-/// venue fetch. Pure so it is unit-testable.
+/// The venue loading cycle: which sports ball shows, and the
+/// loading line, at each second of a venue fetch. Pure so it is
+/// unit-testable. Balls only, never people: the icon comes from
+/// SportTabs.loadingBallStyle (ball-only), not the map-pin mapping.
+/// The line always reads "Finding…" — the word "Loading" never
+/// appears. Every step has a non-empty ball symbol, so the
+/// indicator always shows an icon while loading.
 enum VenueLoadingCycle {
     /// The sports whose ball icons cycle while loading, in order.
     static let tags = ["basketball", "soccer", "football", "tennis",
@@ -339,28 +372,43 @@ enum VenueLoadingCycle {
         tags[index % tags.count]
     }
 
-    /// The loading line at a cycle step: "Finding…" on even steps,
-    /// "Loading…" on odd steps.
+    /// The ball-only SF Symbol shown at a cycle step. Never empty
+    /// and never a figure.* symbol, at any step.
+    static func symbol(at index: Int) -> String {
+        SportTabs.loadingBallStyle(forTag: tag(at: index)).symbol
+    }
+
+    /// The loading line at a cycle step: always "Finding…".
+    /// The word "Loading" is never shown.
     static func text(at index: Int) -> String {
-        index.isMultiple(of: 2) ? "Finding…" : "Loading…"
+        "Finding…"
     }
 }
 
-/// Playful venue loading state: the text alternates between
-/// "Finding…" and "Loading…" and a sports ball spins, cycling
-/// through the sports once a second, so a slow venue fetch still
-/// feels alive. Shown while the court store is loading.
+/// Playful venue loading state: a sports ball spins, cycling
+/// through the sports once a second, next to the fixed line
+/// "Finding…", so a slow venue fetch still feels alive. Balls
+/// only — no people figures — and the icon is unconditional, so
+/// it is always visible while the court store is loading. Shown
+/// while the court store is loading.
 private struct SportyLoadingView: View {
     @State private var index = 0
     @State private var rotation: Double = 0
 
     private var style: (symbol: String, color: Color) {
-        SportTabs.pinStyle(forTag: VenueLoadingCycle.tag(at: index))
+        SportTabs.loadingBallStyle(forTag: VenueLoadingCycle.tag(at: index))
+    }
+
+    /// The icon symbol, guaranteed non-empty: the ball-only mapping
+    /// never returns an empty symbol, and the fallback covers any
+    /// future change, so the Image below can never render blank.
+    private var iconSymbol: String {
+        style.symbol.isEmpty ? "basketball.fill" : style.symbol
     }
 
     var body: some View {
         HStack(spacing: 10) {
-            Image(systemName: style.symbol)
+            Image(systemName: iconSymbol)
                 .font(.title2)
                 .foregroundColor(style.color)
                 .rotationEffect(.degrees(rotation))

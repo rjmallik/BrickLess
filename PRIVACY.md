@@ -2,7 +2,7 @@
 
 Effective date: November 9, 2026
 
-PlayMatch ("the App") is a sports app that lets players create an account, set up a profile, find courts and fields, add friends, book time, and join pickup games. This policy explains what data the App collects and what happens to it. Contact: rutujit97872@gmail.com.
+PlayMatch ("the App") is a sports app that lets players create an account, set up a profile, find courts and fields, add friends, book time, and join pickup games. This policy explains what data the App collects and what happens to it. Contact: [support email].
 
 ## What we collect
 
@@ -23,7 +23,7 @@ The App has no ads, no analytics SDK, and no tracking. We do not sell your data,
 
 ## Deleting your data
 
-You can delete your account from inside the App (My Profile > Delete Account). This deletes your sign-in, your profile, and your username reservation, freeing the username for reuse. Courts you added stay on the map because they are public places. Bookings, friend requests, and game messages you created remain in the system but are no longer linked to an identifiable profile. To ask for anything else to be removed, email rutujit97872@gmail.com.
+You can delete your account from inside the App (My Profile > Delete Account). This deletes your sign-in, your profile, and your username reservation, freeing the username for reuse. Courts you added stay on the map because they are public places. Bookings, friend requests, and game messages you created remain in the system but are no longer linked to an identifiable profile. To ask for anything else to be removed, email [support email].
 
 ## Children
 

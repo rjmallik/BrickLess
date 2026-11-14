@@ -170,9 +170,21 @@ class CourtStore: ObservableObject {
     @Published var courts: [Court] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
+    /// True when the most recent venues fetch failed (Overpass
+    /// unreachable, at capacity, or a bad response) after all
+    /// retries. The map uses it to offer a retry instead of sitting
+    /// on an empty city, and to re-fetch a city whose first fetch
+    /// failed instead of assuming it has no courts.
+    @Published private(set) var lastFetchFailed = false
 
     private let db = Firestore.firestore()
-    private var lastFetchKey = ""
+    /// Grid cell of the last fetch that SUCCEEDED. A fetch for this
+    /// cell is skipped: the venues for it are already on screen.
+    /// A failed fetch never lands here, so it can always be retried.
+    private var lastSuccessfulFetchKey = ""
+    /// Grid cell of the fetch currently in flight, if any, so the
+    /// same cell is not fetched twice at once.
+    private var inFlightKey: String?
 
     /// Venue search window: 25 km radius, 200 Overpass results max.
     /// Wide enough to cover a metro area, not just the immediate
@@ -181,23 +193,120 @@ class CourtStore: ObservableObject {
     static let venueSearchRadiusMeters = 25_000
     static let overpassResultLimit = 200
 
+    /// Overpass is a shared public service and often answers 429 /
+    /// 502 "at capacity" under load: a failed fetch is retried this
+    /// many times in total before the map reports an error.
+    static let overpassMaxAttempts = 3
+
+    /// What the map shows when the venues fetch fails after all
+    /// retries: the map is empty, so the player needs to know the
+    /// fetch failed (rather than that their city has no courts) and
+    /// that trying again can fix it.
+    static let venueFetchErrorMessage =
+        "Couldn't load courts and fields near here. Check your connection and try again."
+
+    /// Grid cell for a fetch centre, matching Court.gridKey: one
+    /// cell is ~1 km. Pure so the unit tests pin the key down.
+    static func fetchCacheKey(for coordinate: CLLocationCoordinate2D) -> String {
+        Court.gridKey(latitude: coordinate.latitude, longitude: coordinate.longitude)
+    }
+
+    /// Whether a fetch for `key` should start. Pure so the unit
+    /// tests pin the retry rule: a cell whose fetch already
+    /// succeeded is not re-fetched, and an identical fetch already
+    /// in flight is not duplicated — but a cell whose last fetch
+    /// failed starts a fresh fetch, so one bad Overpass response
+    /// can never leave a city permanently empty.
+    static func shouldStartFetch(key: String, lastSuccessfulKey: String,
+                                 inFlightKey: String?) -> Bool {
+        key != lastSuccessfulKey && inFlightKey != key
+    }
+
+    /// Delay before an Overpass retry, in seconds: 1s after the
+    /// first failed attempt, 2s after the second. No retry after
+    /// the last attempt. Pure so the unit tests pin the backoff.
+    static func overpassRetryDelaySeconds(forAttempt attempt: Int) -> TimeInterval {
+        switch attempt {
+        case 1: return 1
+        case 2: return 2
+        default: return 0
+        }
+    }
+
+    /// The Overpass QL query for sport-tagged pitches around a
+    /// point. Pure so the unit tests pin the radius, the sports,
+    /// and the result cap.
+    static func overpassQuery(around coordinate: CLLocationCoordinate2D,
+                              radiusMeters: Int = venueSearchRadiusMeters) -> String {
+        let sportPattern = launchSports.joined(separator: "|")
+        return """
+        [out:json][timeout:25];
+        (
+          node["leisure"="pitch"]["sport"~"\(sportPattern)"](around:\(radiusMeters),\(coordinate.latitude),\(coordinate.longitude));
+          way["leisure"="pitch"]["sport"~"\(sportPattern)"](around:\(radiusMeters),\(coordinate.latitude),\(coordinate.longitude));
+        );
+        out center \(overpassResultLimit);
+        """
+    }
+
+    /// The Overpass POST request for a point: the query goes in a
+    /// percent-encoded `data=` form body (a raw body with newlines
+    /// and quotes is not valid form encoding). Pure so the unit
+    /// tests can round-trip the body back to the query.
+    static func overpassRequest(around coordinate: CLLocationCoordinate2D,
+                                radiusMeters: Int = venueSearchRadiusMeters) -> URLRequest? {
+        guard let url = URL(string: "https://overpass-api.de/api/interpreter") else { return nil }
+        // Form-encode the query: only unreserved characters stay
+        // literal, so nothing in the query (quotes, brackets,
+        // semicolons, newlines) can break the `data=` field apart.
+        let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-._~"))
+        guard let encoded = overpassQuery(around: coordinate, radiusMeters: radiusMeters)
+                .addingPercentEncoding(withAllowedCharacters: allowed) else { return nil }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.httpBody = "data=\(encoded)".data(using: .utf8)
+        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        return request
+    }
+
     /// Wide enough to cover a metro area (25 km), not just the
     /// immediate neighbourhood, so players see venues across town.
     func fetchCourts(around coordinate: CLLocationCoordinate2D, radiusMeters: Int = venueSearchRadiusMeters) {
-        // Cache per ~1 km grid cell so panning the map does not re-query.
-        let key = "\(Int(coordinate.latitude * 100))_\(Int(coordinate.longitude * 100))"
-        guard key != lastFetchKey else { return }
-        lastFetchKey = key
+        // One fetch per ~1 km grid cell, so panning the map does not
+        // re-query. Only a cell whose fetch SUCCEEDED is skipped:
+        // a failed fetch leaves no successful key, so saving the
+        // same city again, reopening the map, or tapping Try again
+        // all retry it instead of showing an empty map forever.
+        let key = Self.fetchCacheKey(for: coordinate)
+        guard Self.shouldStartFetch(key: key, lastSuccessfulKey: lastSuccessfulFetchKey,
+                                    inFlightKey: inFlightKey) else { return }
+        inFlightKey = key
         isLoading = true
+        lastFetchFailed = false
+        errorMessage = nil
 
         fetchFromOverpass(around: coordinate, radiusMeters: radiusMeters) { [weak self] osmCourts in
             guard let self else { return }
+            guard let osmCourts else {
+                // Overpass failed after all retries: report it and
+                // leave the cell retryable (no successful key is
+                // set). The courts already on screen stay put.
+                self.isLoading = false
+                self.inFlightKey = nil
+                self.lastFetchFailed = true
+                self.errorMessage = Self.venueFetchErrorMessage
+                return
+            }
             self.fetchCommunityCourts(around: coordinate) { community in
                 var all = osmCourts + community
                 var seen = Set<String>()
                 all = all.filter { seen.insert($0.id).inserted }
                 self.courts = all.sorted { $0.name < $1.name }
                 self.isLoading = false
+                self.inFlightKey = nil
+                self.lastSuccessfulFetchKey = key
+                self.lastFetchFailed = false
+                self.errorMessage = nil
             }
         }
     }
@@ -217,60 +326,70 @@ class CourtStore: ObservableObject {
         var elements: [Element]
     }
 
+    /// OpenStreetMap pitches around a point, via Overpass. The
+    /// completion carries nil (not an empty list) when the fetch
+    /// failed after all retries, so the caller can report the
+    /// failure and leave the cell retryable instead of treating a
+    /// bad response as "this city has no courts".
     private func fetchFromOverpass(around coordinate: CLLocationCoordinate2D,
                                    radiusMeters: Int,
-                                   completion: @escaping ([Court]) -> Void) {
-        let sportPattern = CourtStore.launchSports.joined(separator: "|")
-        let query = """
-        [out:json][timeout:25];
-        (
-          node["leisure"="pitch"]["sport"~"\(sportPattern)"](around:\(radiusMeters),\(coordinate.latitude),\(coordinate.longitude));
-          way["leisure"="pitch"]["sport"~"\(sportPattern)"](around:\(radiusMeters),\(coordinate.latitude),\(coordinate.longitude));
-        );
-        out center \(overpassResultLimit);
-        """
-        var request = URLRequest(url: URL(string: "https://overpass-api.de/api/interpreter")!)
-        request.httpMethod = "POST"
-        request.httpBody = "data=\(query)".data(using: .utf8)
-        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+                                   attempt: Int = 1,
+                                   completion: @escaping ([Court]?) -> Void) {
+        guard let request = Self.overpassRequest(around: coordinate, radiusMeters: radiusMeters) else {
+            DispatchQueue.main.async { completion(nil) }
+            return
+        }
 
-        URLSession.shared.dataTask(with: request) { data, _, _ in
-            guard let data,
-                  let response = try? JSONDecoder().decode(OverpassResponse.self, from: data) else {
-                DispatchQueue.main.async { completion([]) }
+        URLSession.shared.dataTask(with: request) { data, response, _ in
+            let statusOK = (response as? HTTPURLResponse)?.statusCode
+                .map { (200..<300).contains($0) } ?? false
+            if statusOK, let data,
+               let decoded = try? JSONDecoder().decode(OverpassResponse.self, from: data) {
+                let courts: [Court] = decoded.elements.compactMap { element in
+                    let lat = element.lat ?? element.center?.lat
+                    let lon = element.lon ?? element.center?.lon
+                    guard let lat, let lon else { return nil }
+                    let tags = element.tags ?? [:]
+                    // Skip fields the public cannot use (e.g. private school
+                    // or club fields). Validated Nov 7: one football pitch
+                    // near Seattle is access=private.
+                    guard tags["access"] != "private" else { return nil }
+                    let sports = tags["sport"] ?? "basketball"
+                    // OSM tags: basketball, soccer, american_football.
+                    // A bare "football" tag means soccer in most of the world.
+                    let sport = Court.sport(fromSportsTag: sports)
+                    let defaultName = Court.defaultName(forSport: sport)
+                    return Court(
+                        id: "osm-\(element.type)-\(element.id)",
+                        name: tags["name"] ?? defaultName,
+                        sport: sport,
+                        latitude: lat, longitude: lon,
+                        surface: tags["surface"] ?? "",
+                        lit: tags["lit"] == "yes",
+                        indoor: tags["indoor"] == "yes",
+                        // OSM is trusted public data, so its venues are
+                        // verified. (Community venues are the ones that
+                        // start unverified; see addCommunityCourt.)
+                        verified: true,
+                        source: "openstreetmap",
+                        gridKey: Court.gridKey(latitude: lat, longitude: lon)
+                    )
+                }
+                DispatchQueue.main.async { completion(courts) }
                 return
             }
-            let courts: [Court] = response.elements.compactMap { element in
-                let lat = element.lat ?? element.center?.lat
-                let lon = element.lon ?? element.center?.lon
-                guard let lat, let lon else { return nil }
-                let tags = element.tags ?? [:]
-                // Skip fields the public cannot use (e.g. private school
-                // or club fields). Validated Nov 7: one football pitch
-                // near Seattle is access=private.
-                guard tags["access"] != "private" else { return nil }
-                let sports = tags["sport"] ?? "basketball"
-                // OSM tags: basketball, soccer, american_football.
-                // A bare "football" tag means soccer in most of the world.
-                let sport = Court.sport(fromSportsTag: sports)
-                let defaultName = Court.defaultName(forSport: sport)
-                return Court(
-                    id: "osm-\(element.type)-\(element.id)",
-                    name: tags["name"] ?? defaultName,
-                    sport: sport,
-                    latitude: lat, longitude: lon,
-                    surface: tags["surface"] ?? "",
-                    lit: tags["lit"] == "yes",
-                    indoor: tags["indoor"] == "yes",
-                    // OSM is trusted public data, so its venues are
-                    // verified. (Community venues are the ones that
-                    // start unverified; see addCommunityCourt.)
-                    verified: true,
-                    source: "openstreetmap",
-                    gridKey: Court.gridKey(latitude: lat, longitude: lon)
-                )
+            // Failed: no network, Overpass at capacity (its 502 page
+            // tells clients to retry with backoff), or a bad response.
+            // Retry a couple of times, then report nil.
+            if attempt < Self.overpassMaxAttempts {
+                let delay = Self.overpassRetryDelaySeconds(forAttempt: attempt)
+                DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+                    self?.fetchFromOverpass(around: coordinate, radiusMeters: radiusMeters,
+                                            attempt: attempt + 1, completion: completion)
+                }
+            } else {
+                DispatchQueue.main.async { completion(nil) }
             }
-            DispatchQueue.main.async { completion(courts) }
         }.resume()
     }
 

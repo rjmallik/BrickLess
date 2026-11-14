@@ -12,6 +12,8 @@ rules_version = '2';
 //   bookings/{id}     - court bookings / game slots
 //   events/{id}       - pickup games posted at a court (see EventStore)
 //   events/{id}/messages/{msgId} - group chat for one game
+//   directChats/{id}  - 1-to-1 chats between two friends (see DirectChatStore)
+//   directChats/{id}/messages/{msgId} - direct messages for one thread
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -183,6 +185,41 @@ service cloud.firestore {
       allow update: if false;
       allow delete: if signedIn()
         && request.auth.uid == get(/databases/$(database)/documents/events/$(eventId)).data.creatorUid;
+    }
+
+    // Direct chats: 1-to-1 chats between two friends. The thread id is
+    // the two participant UIDs sorted and joined with "_", so the pair
+    // can never have two threads; the create rule enforces that shape
+    // (exactly 2 participants, sorted, doc id matches, caller is one of
+    // them). Only the two participants can read the thread. Updates can
+    // only change the last-message preview, so nobody can add or remove
+    // a participant. The thread doc holds only UIDs, usernames and the
+    // last-message preview: no emails or phone numbers.
+    match /directChats/{threadId} {
+      allow read: if signedIn()
+        && request.auth.uid in resource.data.participantUids;
+      allow create: if signedIn()
+        && request.resource.data.participantUids.size() == 2
+        && request.auth.uid in request.resource.data.participantUids
+        && request.resource.data.participantUids[0] < request.resource.data.participantUids[1]
+        && threadId == request.resource.data.participantUids[0] + "_" + request.resource.data.participantUids[1];
+      allow update: if signedIn()
+        && request.auth.uid in resource.data.participantUids
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastMessageText', 'lastMessageAt']);
+      allow delete: if false;
+    }
+
+    // Direct messages: only the two participants can read or post.
+    // The get() reads the parent thread doc to check participantUids.
+    // Messages are never edited or deleted.
+    match /directChats/{threadId}/messages/{msgId} {
+      allow read: if signedIn()
+        && request.auth.uid in get(/databases/$(database)/documents/directChats/$(threadId)).data.participantUids;
+      allow create: if signedIn()
+        && request.auth.uid in get(/databases/$(database)/documents/directChats/$(threadId)).data.participantUids
+        && request.resource.data.senderUid == request.auth.uid;
+      allow update: if false;
+      allow delete: if false;
     }
   }
 }

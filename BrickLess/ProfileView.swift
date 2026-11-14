@@ -1,11 +1,7 @@
 import SwiftUI
 
-// One common support contact for every user (Guideline 1.2 requires
-// published contact information). This is RJ's own Gmail, an inbox he
-// actually reads, because reports are meant to be acted on within
-// 24 hours. Chosen Nov 8, 2026: support@brickless.app has no MX
-// records and is not a real inbox, so it was replaced.
-private let supportEmail = "rutujit97872@gmail.com"
+// No support contact is published in the app right now (Nov 13, 2026:
+// RJ removed his personal Gmail; a proper support email comes later).
 
 /// The player's own profile, opened from Recreational > My Profile.
 struct ProfileView: View {
@@ -89,10 +85,6 @@ struct ProfileView: View {
             } else {
                 ProgressView()
             }
-
-            Link("Contact support: \(supportEmail)", destination: URL(string: "mailto:\(supportEmail)")!)
-                .font(.footnote)
-                .padding(.top, 8)
 
             Button("Sign Out", role: .destructive) {
                 session.signOut()
