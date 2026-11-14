@@ -49,6 +49,13 @@ struct UserProfile: Codable, Identifiable {
     /// filter queries server-side, so it stays a single top-level field.
     /// Nil when the player did not specify a highest level for any sport.
     var highestLevel: String? = nil // highest level officially played
+    /// Public profile photo, stored in Firebase Storage at
+    /// `profilePhotos/{uid}.jpg` and shown on the profile and in
+    /// player lists. Optional with a nil default so older profile
+    /// documents that lack it still decode. A photo URL is public by
+    /// design (other players see it); it never carries email or
+    /// phone, which stay out of profile documents entirely.
+    var photoURL: String? = nil // download URL of the profile photo
     var createdAt: Date
     var updatedAt: Date
 
@@ -108,6 +115,31 @@ struct UserProfile: Codable, Identifiable {
     /// This profile's height as "6'2\"", or nil when not provided.
     var heightFormatted: String? {
         heightInches.map { Self.formattedHeight($0) }
+    }
+
+    /// Storage path for a user's profile photo: one fixed path per
+    /// user, so re-uploading overwrites the old photo. Pure, so the
+    /// upload and the Storage rules both use the same path.
+    static func photoStoragePath(for uid: String) -> String {
+        "profilePhotos/\(uid).jpg"
+    }
+
+    /// Max photo dimension (longest side, in points) and JPEG quality
+    /// used when uploading a profile photo, so photos stay small on
+    /// the free Spark plan (5 GB of Storage).
+    static let profilePhotoMaxDimension: CGFloat = 1024
+    static let profilePhotoJPEGQuality: CGFloat = 0.7
+
+    /// The size a photo of `original` size is scaled to for upload:
+    /// the longest side capped at `maxDimension`, aspect ratio kept,
+    /// never scaled up. Rounded to whole points. Pure, so the unit
+    /// tests cover the sizing without any image work.
+    static func scaledPhotoSize(for original: CGSize, maxDimension: CGFloat) -> CGSize {
+        let longest = max(original.width, original.height)
+        guard longest > maxDimension, longest > 0 else { return original }
+        let scale = maxDimension / longest
+        return CGSize(width: (original.width * scale).rounded(),
+                      height: (original.height * scale).rounded())
     }
     // Sports offered at signup. All phases except golf (phase 4):
     // basketball (phase 1), soccer + American football (phase 2),

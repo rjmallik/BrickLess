@@ -18,12 +18,8 @@ struct ProfileView: View {
         ScrollView {
             VStack(spacing: 16) {
             if let profile = session.profile {
-                Text(String(profile.displayName.prefix(1)).uppercased())
-                    .font(.system(size: 48, weight: .bold))
-                    .foregroundColor(.white)
-                    .frame(width: 96, height: 96)
-                    .background(PlayMatchColors.brand)
-                    .clipShape(Circle())
+                ProfileAvatarView(displayName: profile.displayName,
+                                  photoURL: profile.photoURL, size: 96)
 
                 Text(profile.displayName)
                     .font(.title.bold())
@@ -167,5 +163,43 @@ struct ProfileView: View {
         .padding(.vertical, 8)
         .background(Color(.systemGray6))
         .cornerRadius(10)
+    }
+}
+
+/// A player's avatar: their uploaded photo when they have one,
+/// otherwise a circle with the first letter of their display name.
+/// Shared by My Profile, the players list, Friends, and player detail,
+/// so every avatar in the app looks the same.
+struct ProfileAvatarView: View {
+    let displayName: String
+    let photoURL: String?
+    var size: CGFloat = 64
+
+    var body: some View {
+        if let photoURL, let url = URL(string: photoURL) {
+            AsyncImage(url: url) { phase in
+                switch phase {
+                case .success(let image):
+                    image
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: size, height: size)
+                        .clipShape(Circle())
+                default:
+                    initialCircle
+                }
+            }
+        } else {
+            initialCircle
+        }
+    }
+
+    private var initialCircle: some View {
+        Text(String(displayName.prefix(1)).uppercased())
+            .font(.system(size: size * 0.5, weight: .bold))
+            .foregroundColor(.white)
+            .frame(width: size, height: size)
+            .background(PlayMatchColors.brand)
+            .clipShape(Circle())
     }
 }

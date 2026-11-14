@@ -1,0 +1,27 @@
+rules_version = '2';
+
+// PlayMatch Storage rules. Deploy with: firebase deploy --only storage
+// (Firebase console: Storage must be enabled first, and the bucket
+// created. Free Spark plan includes 5 GB of Storage.)
+//
+//   profilePhotos/{uid}.jpg - a user's profile photo, one fixed path
+//   per user, so a new photo overwrites the old one.
+//
+// The photo URL is public by design (other players see the photo on
+// profiles and in the players list), but only the owner can write
+// their own photo: the file name must be the caller's uid plus .jpg.
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    // Profile photos: anyone signed in can read; only the owner can
+    // write their own file. The write check ties the file name to the
+    // caller's uid, so one user cannot overwrite another's photo.
+    match /profilePhotos/{file} {
+      allow read: if signedIn();
+      allow write: if signedIn() && file == request.auth.uid + ".jpg";
+    }
+  }
+}

@@ -50,10 +50,8 @@ struct PlayerDetailView: View {
 
     private var header: some View {
         HStack {
-            Text(String(profile.displayName.prefix(1)).uppercased())
-                .font(.largeTitle).foregroundColor(.white)
-                .frame(width: 64, height: 64)
-                .background(Color.blue).clipShape(Circle())
+            ProfileAvatarView(displayName: profile.displayName,
+                              photoURL: profile.photoURL, size: 64)
             VStack(alignment: .leading) {
                 Text(profile.displayName).font(.title2).bold()
                 Text("@\(profile.username)").foregroundColor(.secondary)

@@ -98,10 +98,8 @@ struct PlayersView: View {
     private func playerCard(_ profile: UserProfile) -> some View {
         let stats = PlayersStore.statLine(for: profile)
         return HStack {
-            Text(String(profile.displayName.prefix(1)).uppercased())
-                .font(.headline).foregroundColor(.white)
-                .frame(width: 40, height: 40)
-                .background(Color.blue).clipShape(Circle())
+            ProfileAvatarView(displayName: profile.displayName,
+                              photoURL: profile.photoURL, size: 40)
             VStack(alignment: .leading, spacing: 2) {
                 Text(profile.displayName).font(.headline)
                 Text("@\(profile.username) · \(profile.position)")

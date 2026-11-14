@@ -64,10 +64,8 @@ struct FriendsView: View {
             } else {
                 List(store.friends) { friend in
                     HStack {
-                        Text(String(friend.displayName.prefix(1)).uppercased())
-                            .font(.headline).foregroundColor(.white)
-                            .frame(width: 40, height: 40)
-                            .background(Color.blue).clipShape(Circle())
+                        ProfileAvatarView(displayName: friend.displayName,
+                                          photoURL: friend.photoURL, size: 40)
                         VStack(alignment: .leading) {
                             Text(friend.displayName).font(.headline)
                             Text("@\(friend.username) · \(friend.position)")

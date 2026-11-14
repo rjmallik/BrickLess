@@ -1,8 +1,10 @@
 import Foundation
 import Combine
+import UIKit
 import FirebaseAuth
 import FirebaseFirestore
 import FirebaseFirestoreSwift
+import FirebaseStorage
 
 /// Real auth for PlayMatch, backed by Firebase Auth + Firestore.
 ///
@@ -706,11 +708,14 @@ class SessionStore: ObservableObject {
     /// (one entry per opted-in sport); the top-level `position` and
     /// `skillLevel` are derived from the primary sport, and the top-level
     /// `highestLevel` is the max across sports, so the Players level
-    /// filter keeps working on a single field.
+    /// filter keeps working on a single field. `photoURL` is the full
+    /// new photo URL (nil when the photo was removed); the caller
+    /// always passes it, so an unchanged photo is passed through.
     func saveProfile(displayName: String, username: String,
                      city: String, sports: [String] = [],
                      sportProfiles: [SportProfile] = [],
                      age: Int? = nil, heightInches: Int? = nil,
+                     photoURL: String? = nil,
                      completion: @escaping (String?) -> Void) {
         guard let user = firebaseUser else {
             completion("You are not signed in.")
@@ -758,6 +763,7 @@ class SessionStore: ObservableObject {
             updated.age = age
             updated.heightInches = heightInches
             updated.highestLevel = highestLevel
+            updated.photoURL = photoURL
             updated.profileComplete = true
             updated.updatedAt = Date()
 
@@ -793,6 +799,83 @@ class SessionStore: ObservableObject {
                 writeProfile()
             }
         }
+    }
+
+    // MARK: - Profile photo
+
+    /// Uploads a profile photo to Storage at
+    /// `UserProfile.photoStoragePath(for: uid)` (one fixed path per
+    /// user, so a new photo overwrites the old one), after resizing
+    /// to at most `profilePhotoMaxDimension` and JPEG-compressing at
+    /// `profilePhotoJPEGQuality`, so photos stay small on the free
+    /// Spark plan (5 GB of Storage). Calls completion with the
+    /// download URL on success, or an error. Sets isLoading while
+    /// the upload runs, so the Save button shows a spinner.
+    func uploadProfilePhoto(_ image: UIImage, completion: @escaping (Result<String, Error>) -> Void) {
+        guard let uid = firebaseUser?.uid else {
+            completion(.failure(Self.photoError("You are not signed in.")))
+            return
+        }
+        guard let data = Self.photoJPEGData(for: image) else {
+            completion(.failure(Self.photoError("That photo could not be read.")))
+            return
+        }
+        isLoading = true
+        let metadata = StorageMetadata()
+        metadata.contentType = "image/jpeg"
+        let ref = Storage.storage().reference().child(UserProfile.photoStoragePath(for: uid))
+        ref.putData(data, metadata: metadata) { [weak self] _, error in
+            if let error {
+                self?.isLoading = false
+                completion(.failure(error))
+                return
+            }
+            ref.downloadURL { [weak self] url, error in
+                self?.isLoading = false
+                if let url {
+                    completion(.success(url.absoluteString))
+                } else {
+                    completion(.failure(error ?? Self.photoError("Could not get the photo link.")))
+                }
+            }
+        }
+    }
+
+    /// Deletes the user's profile photo from Storage. Best effort,
+    /// used when the user removes their photo; the profile save
+    /// itself clears the URL. A failure is ignored: an orphaned
+    /// file is harmless on the free tier.
+    func deleteProfilePhoto() {
+        guard let uid = firebaseUser?.uid else { return }
+        Storage.storage().reference().child(UserProfile.photoStoragePath(for: uid)).delete { _ in }
+    }
+
+    /// Resized + JPEG-compressed data for a profile photo, or nil
+    /// when the image cannot be encoded. Static so the unit tests
+    /// can cover the encoding without Firebase.
+    static func photoJPEGData(for image: UIImage) -> Data? {
+        let target = UserProfile.scaledPhotoSize(for: image.size,
+                                                 maxDimension: UserProfile.profilePhotoMaxDimension)
+        let resized: UIImage
+        if target == image.size {
+            resized = image
+        } else {
+            // Scale 1: the rendered image is `target` pixels, not
+            // `target` points times the screen scale, so the cap is
+            // really 1024 pixels on the longest side.
+            let format = UIGraphicsImageRendererFormat()
+            format.scale = 1
+            let renderer = UIGraphicsImageRenderer(size: target, format: format)
+            resized = renderer.image { _ in
+                image.draw(in: CGRect(origin: .zero, size: target))
+            }
+        }
+        return resized.jpegData(compressionQuality: UserProfile.profilePhotoJPEGQuality)
+    }
+
+    private static func photoError(_ message: String) -> Error {
+        NSError(domain: "PlayMatch", code: 0,
+                userInfo: [NSLocalizedDescriptionKey: message])
     }
 
     /// True when no `usernames/{lower}` doc exists.

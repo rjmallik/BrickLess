@@ -1,4 +1,6 @@
 import SwiftUI
+import PhotosUI
+import UIKit
 
 /// Step 2 of account setup: the player profile.
 /// Shown to every new account, and reachable later from My Profile > Edit.
@@ -26,6 +28,13 @@ struct ProfileSetupView: View {
     @State private var heightInches: Int = 0
     @State private var errorMessage: String?
     @State private var usernameTaken: Bool = false
+    /// Profile photo (optional): the saved photo URL, a newly picked
+    /// photo's data (not yet uploaded), and the picker item. The photo
+    /// uploads on Save; removing it clears the URL and deletes the
+    /// stored file.
+    @State private var photoURL: String?
+    @State private var newPhotoData: Data?
+    @State private var photoPickerItem: PhotosPickerItem?
     /// Location permission, offered at signup so the map works the first
     /// time the user opens it. Skippable by design: the system prompt
     /// fires at most once, and Save Profile below always works, with or
@@ -42,6 +51,38 @@ struct ProfileSetupView: View {
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
+
+                // Profile photo (optional): shown on the profile and in
+                // player lists. Picking a new one replaces the current
+                // photo; Remove clears it. The photo uploads on Save.
+                VStack(spacing: 8) {
+                    photoPreview
+                    HStack(spacing: 16) {
+                        PhotosPicker(selection: $photoPickerItem, matching: .images,
+                                     photoLibrary: .shared()) {
+                            Label(photoURL == nil && newPhotoData == nil ? "Add photo" : "Change photo",
+                                  systemImage: "photo")
+                        }
+                        .foregroundColor(PlayMatchColors.brand)
+                        if photoURL != nil || newPhotoData != nil {
+                            Button("Remove photo") {
+                                photoURL = nil
+                                newPhotoData = nil
+                                photoPickerItem = nil
+                            }
+                            .foregroundColor(.red)
+                            .font(.footnote)
+                        }
+                    }
+                }
+                .onChange(of: photoPickerItem) { _, item in
+                    guard let item else { return }
+                    Task {
+                        if let data = try? await item.loadTransferable(type: Data.self) {
+                            newPhotoData = data
+                        }
+                    }
+                }
 
                 TextField("Display name", text: $displayName)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
@@ -157,34 +198,7 @@ struct ProfileSetupView: View {
                     ProgressView().padding()
                 } else {
                     Button("Save Profile") {
-                        errorMessage = nil
-                        guard !sports.isEmpty else {
-                            errorMessage = "Pick at least one sport you play."
-                            return
-                        }
-                        // Age is optional, but when entered it must be a number in range.
-                        let age: Int?
-                        switch UserProfile.parseAge(ageText) {
-                        case .blank:
-                            age = nil
-                        case .valid(let value):
-                            age = value
-                        case .invalid:
-                            errorMessage = "Enter an age between 13 and 100, or leave it blank."
-                            return
-                        }
-                        let height: Int? = includeHeight ? heightFeet * 12 + heightInches : nil
-                        // Per-sport detail, in allSports order, for opted-in sports only.
-                        let sportProfiles = sports.compactMap { sportDrafts[$0] }
-                        session.saveProfile(displayName: displayName, username: username,
-                                            city: city, sports: sports,
-                                            sportProfiles: sportProfiles,
-                                            age: age, heightInches: height) { error in
-                            if error == "That username is already taken." {
-                                usernameTaken = true
-                            }
-                            errorMessage = error
-                        }
+                        save()
                     }
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
@@ -202,6 +216,8 @@ struct ProfileSetupView: View {
                 displayName = profile.displayName
                 username = profile.username
                 city = profile.city
+                photoURL = profile.photoURL
+                newPhotoData = nil
                 sports = profile.sports.isEmpty ? ["Basketball"] : profile.sports
                 if !profile.sportProfiles.isEmpty {
                     sportDrafts = Dictionary(uniqueKeysWithValues:
@@ -225,6 +241,88 @@ struct ProfileSetupView: View {
                                      UserProfile.heightFeetRange.upperBound)
                     heightInches = inches % 12
                 }
+            }
+        }
+    }
+
+    /// The photo preview: the newly picked photo first, then the
+    /// saved photo, then the initial-letter circle.
+    private var photoPreview: some View {
+        Group {
+            if let newPhotoData, let image = UIImage(data: newPhotoData) {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 96, height: 96)
+                    .clipShape(Circle())
+            } else {
+                ProfileAvatarView(displayName: displayName.isEmpty ? username : displayName,
+                                  photoURL: photoURL, size: 96)
+            }
+        }
+    }
+
+    /// Validates the form, uploads a newly picked photo first (when
+    /// there is one), then saves the profile with the photo URL.
+    /// Removing the photo clears the URL and deletes the stored file.
+    private func save() {
+        errorMessage = nil
+        guard !sports.isEmpty else {
+            errorMessage = "Pick at least one sport you play."
+            return
+        }
+        // Age is optional, but when entered it must be a number in range.
+        let age: Int?
+        switch UserProfile.parseAge(ageText) {
+        case .blank:
+            age = nil
+        case .valid(let value):
+            age = value
+        case .invalid:
+            errorMessage = "Enter an age between 13 and 100, or leave it blank."
+            return
+        }
+        let height: Int? = includeHeight ? heightFeet * 12 + heightInches : nil
+        // Per-sport detail, in allSports order, for opted-in sports only.
+        let sportProfiles = sports.compactMap { sportDrafts[$0] }
+        let hadPhoto = session.profile?.photoURL != nil
+
+        if let newPhotoData {
+            guard let image = UIImage(data: newPhotoData) else {
+                errorMessage = "That photo could not be read. Pick another one."
+                return
+            }
+            session.uploadProfilePhoto(image) { result in
+                switch result {
+                case .success(let url):
+                    commitSave(age: age, height: height, sportProfiles: sportProfiles,
+                               photoURL: url, hadPhoto: hadPhoto)
+                case .failure:
+                    errorMessage = "Couldn't upload your photo. Try again."
+                }
+            }
+        } else {
+            commitSave(age: age, height: height, sportProfiles: sportProfiles,
+                       photoURL: photoURL, hadPhoto: hadPhoto)
+        }
+    }
+
+    /// The Firestore save itself, shared by the with-photo and
+    /// without-photo paths. A removed photo's stored file is deleted
+    /// once the save succeeds and the profile no longer points at it.
+    private func commitSave(age: Int?, height: Int?, sportProfiles: [SportProfile],
+                            photoURL: String?, hadPhoto: Bool) {
+        session.saveProfile(displayName: displayName, username: username,
+                            city: city, sports: sports,
+                            sportProfiles: sportProfiles,
+                            age: age, heightInches: height,
+                            photoURL: photoURL) { error in
+            if error == "That username is already taken." {
+                usernameTaken = true
+            }
+            errorMessage = error
+            if error == nil, hadPhoto, photoURL == nil {
+                session.deleteProfilePhoto()
             }
         }
     }
