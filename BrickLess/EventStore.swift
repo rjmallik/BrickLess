@@ -339,12 +339,12 @@ class EventStore: ObservableObject {
     /// comes back empty — so a chat of any size is fully deleted, and
     /// a message posted mid-delete is caught by the next round instead
     /// of being orphaned. Completion fires exactly once, with the first
-    /// error if any step fails.
-    private func deleteMessages(eventId: String, completion: @escaping (Error?) -> Void) {
+    /// error if any step fails. Static so Delete Account can reuse it
+    /// when it deletes a creator's events (LoginSession).
+    static func deleteAllMessages(db: Firestore, eventId: String, completion: @escaping (Error?) -> Void) {
         db.collection("events").document(eventId).collection("messages")
             .limit(to: Self.maxBatchWrites)
-            .getDocuments { [weak self] snapshot, error in
-                guard let self else { return }
+            .getDocuments { snapshot, error in
                 if let error {
                     completion(error)
                     return
@@ -354,17 +354,20 @@ class EventStore: ObservableObject {
                     completion(nil)
                     return
                 }
-                let batch = self.db.batch()
+                let batch = db.batch()
                 docs.forEach { batch.deleteDocument($0.reference) }
-                batch.commit { [weak self] error in
-                    guard let self else { return }
+                batch.commit { error in
                     if let error {
                         completion(error)
                         return
                     }
-                    self.deleteMessages(eventId: eventId, completion: completion)
+                    Self.deleteAllMessages(db: db, eventId: eventId, completion: completion)
                 }
             }
+    }
+
+    private func deleteMessages(eventId: String, completion: @escaping (Error?) -> Void) {
+        Self.deleteAllMessages(db: db, eventId: eventId, completion: completion)
     }
 
     // MARK: - Players and chat

@@ -118,4 +118,73 @@ final class DeleteAccountTests: XCTestCase {
         XCTAssertFalse(paths.contains("usernames"))
         XCTAssertTrue(paths.isSubset(of: ["friendships", "bookings", "blocks/uid-1/blocked", "reports"]))
     }
+
+    // MARK: - Events coverage
+
+    func testEventQueriesCoverCreatedEvents() {
+        let queries = SessionStore.deleteAccountEventQueries(uid: "uid-1")
+        XCTAssertTrue(queries.contains(
+            SessionStore.DeleteAccountEventQuery(collectionPath: "events", field: "creatorUid", value: "uid-1", op: .equal)))
+    }
+
+    func testEventQueriesCoverJoinedEvents() {
+        let queries = SessionStore.deleteAccountEventQueries(uid: "uid-1")
+        XCTAssertTrue(queries.contains(
+            SessionStore.DeleteAccountEventQuery(collectionPath: "events", field: "playerUids", value: "uid-1", op: .arrayContains)))
+    }
+
+    func testEventQueriesCoverExactlyTwoQueries() {
+        XCTAssertEqual(SessionStore.deleteAccountEventQueries(uid: "uid-1").count, 2)
+    }
+
+    func testEventQueriesUseTheGivenUid() {
+        let queries = SessionStore.deleteAccountEventQueries(uid: "some-other-uid")
+        XCTAssertTrue(queries.allSatisfy { $0.value == "some-other-uid" })
+        XCTAssertFalse(queries.contains { $0.value == "uid-1" })
+    }
+
+    func testJoinedQueryIsArrayContainsNotEqual() {
+        // The joined query must match membership, not an exact field
+        // value: playerUids is a list, so `isEqualTo` would never match.
+        let queries = SessionStore.deleteAccountEventQueries(uid: "uid-1")
+        let joined = queries.first { $0.field == "playerUids" }
+        XCTAssertEqual(joined?.op, .arrayContains)
+        XCTAssertEqual(queries.first { $0.field == "creatorUid" }?.op, .equal)
+    }
+
+    // MARK: - Joined-events leave list
+
+    func testLeaveListKeepsJoinedEvents() {
+        // Events created by other users stay: the user is removed
+        // from playerUids, the game goes on without them.
+        let events = ["event-a": "creator-1", "event-b": "creator-2"]
+        XCTAssertEqual(SessionStore.joinedEventsToLeave(events, uid: "uid-1"),
+                       ["event-a", "event-b"])
+    }
+
+    func testLeaveListExcludesCreatedEvents() {
+        // A created event is deleted outright by the created-events
+        // step, so it must never be "left" instead.
+        let events = ["event-a": "uid-1", "event-b": "creator-2"]
+        XCTAssertEqual(SessionStore.joinedEventsToLeave(events, uid: "uid-1"),
+                       ["event-b"])
+    }
+
+    func testLeaveListExcludesCreatedEventWhenItsDeleteFailed() {
+        // If a created event's delete failed, it still shows up in the
+        // joined query (the creator is in playerUids). Leave it intact
+        // rather than stripping its creator from the player list.
+        let events = ["event-a": "uid-1"]
+        XCTAssertEqual(SessionStore.joinedEventsToLeave(events, uid: "uid-1"), [])
+    }
+
+    func testLeaveListEmptyWhenNoJoinedEvents() {
+        XCTAssertEqual(SessionStore.joinedEventsToLeave([:], uid: "uid-1"), [])
+    }
+
+    func testLeaveListIsSorted() {
+        let events = ["event-z": "creator-1", "event-a": "creator-2", "event-m": "creator-3"]
+        XCTAssertEqual(SessionStore.joinedEventsToLeave(events, uid: "uid-1"),
+                       ["event-a", "event-m", "event-z"])
+    }
 }

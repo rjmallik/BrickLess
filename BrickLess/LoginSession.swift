@@ -257,9 +257,11 @@ class SessionStore: ObservableObject {
     /// - bookings they made (bookedBy)
     /// - blocks they created (blocks/{uid}/blocked, every doc)
     /// - reports they filed (reporterUid)
-    /// Out of scope on purpose: events they created (needs chat-message
-    /// cleanup, a separate fix) and removing them from events they
-    /// joined. Nothing here touches other users' data.
+    /// Events are not in this list: they need special handling (a
+    /// created event's chat must be deleted before the event doc, and
+    /// a joined event only loses the user from playerUids), so they
+    /// go through `deleteAccountEventQueries(uid:)` instead. Nothing
+    /// here touches other users' data.
     static func deleteAccountCleanupQueries(uid: String) -> [DeleteAccountQuery] {
         [
             DeleteAccountQuery(collectionPath: "friendships", field: "fromUid", value: uid),
@@ -270,11 +272,52 @@ class SessionStore: ObservableObject {
         ]
     }
 
+    /// One of the events queries Delete Account runs. Unlike the
+    /// plain cleanup queries above (always `isEqualTo`), the joined
+    /// query is an `arrayContains` on playerUids.
+    struct DeleteAccountEventQuery: Equatable {
+        enum Operator: Equatable {
+            case equal
+            case arrayContains
+        }
+        let collectionPath: String
+        let field: String
+        let value: String
+        let op: Operator
+    }
+
+    /// The events Delete Account touches, as query descriptors:
+    /// - events the user created (creatorUid == uid): deleted
+    ///   entirely, chat messages first, then the event doc. A created
+    ///   game has no host once its creator is gone, and there is no
+    ///   ownership-transfer concept, so the game goes away rather than
+    ///   stranding its players in a hostless chat.
+    /// - events the user joined (playerUids arrayContains uid): the
+    ///   user is removed from playerUids and the game stays for the
+    ///   other players.
+    static func deleteAccountEventQueries(uid: String) -> [DeleteAccountEventQuery] {
+        [
+            DeleteAccountEventQuery(collectionPath: "events", field: "creatorUid", value: uid, op: .equal),
+            DeleteAccountEventQuery(collectionPath: "events", field: "playerUids", value: uid, op: .arrayContains),
+        ]
+    }
+
+    /// From the events a user joined (event id -> creatorUid), the
+    /// ones to remove them from: everything except events they
+    /// created. Created events are deleted outright by the
+    /// created-events step, so if one still shows up here (its delete
+    /// failed), it is left intact rather than stripping its creator
+    /// from the player list. Sorted, so the order is deterministic.
+    static func joinedEventsToLeave(_ events: [String: String], uid: String) -> [String] {
+        events.filter { $0.value != uid }.map { $0.key }.sorted()
+    }
+
     /// Deletes the account entirely, in the app: Firestore profile and
     /// username reservation first, then best-effort cleanup of the user's
-    /// friendships, bookings, blocks and reports, then the Firebase Auth
-    /// user. Firebase may require a recent sign-in; in that case the user
-    /// is told to sign out and back in, then try again.
+    /// friendships, bookings, blocks, reports, created events (with
+    /// their chats), and removal from events they joined, then the
+    /// Firebase Auth user. Firebase may require a recent sign-in; in
+    /// that case the user is told to sign out and back in, then try again.
     func deleteAccount(completion: @escaping (String?) -> Void) {
         guard let user = firebaseUser else {
             completion("You are not signed in.")
@@ -317,12 +360,18 @@ class SessionStore: ObservableObject {
     /// Best-effort cleanup for Delete Account: fetches every doc matching
     /// `deleteAccountCleanupQueries(uid:)` (paged, so a user with more
     /// than one page of friendships/bookings/blocks/reports is fully
-    /// covered), then deletes them in batches of at most
-    /// `deleteAccountBatchLimit`. Any failure (query or batch) is
-    /// swallowed: cleanup never blocks the Auth delete, and `completion`
-    /// always runs exactly once. The `reports` query also needs the
-    /// rules to let the reporter read and delete their own reports;
-    /// without that rule those docs are silently skipped.
+    /// covered), deletes them in batches of at most
+    /// `deleteAccountBatchLimit`, then deletes events the user created
+    /// (chat first, then the event doc) and removes them from events
+    /// they joined. Any failure (query or batch) is swallowed: cleanup
+    /// never blocks the Auth delete, and `completion` always runs
+    /// exactly once. The `reports` query also needs the rules to let
+    /// the reporter read and delete their own reports; without that
+    /// rule those docs are silently skipped. The events steps need no
+    /// extra rules: message deletes are creator-only while the parent
+    /// event exists, event deletes are creator-only, and removing
+    /// exactly the caller from playerUids is the leave branch the
+    /// hardened rules already allow.
     private func deleteAccountCleanup(uid: String, completion: @escaping () -> Void) {
         let queries = Self.deleteAccountCleanupQueries(uid: uid)
         collectCleanupRefs(queries: queries, index: 0, found: []) { [weak self] refs in
@@ -332,7 +381,169 @@ class SessionStore: ObservableObject {
                 completion()
                 return
             }
-            self.deleteRefsInBatches(refs, completion: completion)
+            self.deleteRefsInBatches(refs) { [weak self] in
+                guard let self else {
+                    completion()
+                    return
+                }
+                self.deleteAccountCreatedEvents(uid: uid) { [weak self] in
+                    guard let self else {
+                        completion()
+                        return
+                    }
+                    self.removeFromJoinedEvents(uid: uid, completion: completion)
+                }
+            }
+        }
+    }
+
+    /// Deletes every event the user created, chat first then the event
+    /// doc — the same order as EventStore.deleteEvent, because the
+    /// messages rule only lets the creator delete while the parent
+    /// event still exists. Best effort: if a chat cannot be fully
+    /// deleted, that game is left intact (a failed message batch
+    /// stops that event's delete, same fail-safe as deleteEvent) and
+    /// the rest still run. Completion always runs exactly once.
+    private func deleteAccountCreatedEvents(uid: String, completion: @escaping () -> Void) {
+        fetchCreatedEventIds(uid: uid) { [weak self] ids in
+            guard let self else {
+                completion()
+                return
+            }
+            self.deleteCreatedEvents(ids, index: 0, completion: completion)
+        }
+    }
+
+    /// Fetches the ids of every event whose creatorUid is `uid`, one
+    /// page at a time. A failed page ends the fetch (best effort)
+    /// instead of failing the whole cleanup.
+    private func fetchCreatedEventIds(uid: String,
+                                      after lastDoc: QueryDocumentSnapshot? = nil,
+                                      found: [String] = [],
+                                      completion: @escaping ([String]) -> Void) {
+        var query: Query = db.collection("events")
+            .whereField("creatorUid", isEqualTo: uid)
+            .limit(to: Self.deleteAccountBatchLimit)
+        if let lastDoc {
+            query = query.start(afterDocument: lastDoc)
+        }
+        query.getDocuments { [weak self] snapshot, _ in
+            guard let self, let snapshot else {
+                completion(found)
+                return
+            }
+            let updated = found + snapshot.documents.map { $0.documentID }
+            if snapshot.documents.count < Self.deleteAccountBatchLimit {
+                completion(updated)
+            } else {
+                self.fetchCreatedEventIds(uid: uid, after: snapshot.documents.last,
+                                          found: updated, completion: completion)
+            }
+        }
+    }
+
+    /// Deletes created events one at a time, messages first via the
+    /// shared EventStore helper, then the event doc.
+    private func deleteCreatedEvents(_ ids: [String], index: Int, completion: @escaping () -> Void) {
+        guard index < ids.count else {
+            completion()
+            return
+        }
+        let eventId = ids[index]
+        EventStore.deleteAllMessages(db: db, eventId: eventId) { [weak self] error in
+            guard let self else {
+                completion()
+                return
+            }
+            if error != nil {
+                // Chat could not be fully deleted: leave this game
+                // intact rather than orphaning its messages.
+                self.deleteCreatedEvents(ids, index: index + 1, completion: completion)
+                return
+            }
+            self.db.collection("events").document(eventId).delete { [weak self] _ in
+                guard let self else {
+                    completion()
+                    return
+                }
+                self.deleteCreatedEvents(ids, index: index + 1, completion: completion)
+            }
+        }
+    }
+
+    /// Removes the user from every event they joined that someone else
+    /// created. Runs after the created events are deleted, so their
+    /// own games never appear here; `joinedEventsToLeave` is a second
+    /// line of defence for a created event whose delete failed. Each
+    /// leave is the same arrayRemove the Leave button sends, so the
+    /// hardened rules accept it (only playerUids changes, exactly the
+    /// caller is removed). Best effort; completion always runs once.
+    private func removeFromJoinedEvents(uid: String, completion: @escaping () -> Void) {
+        fetchJoinedEvents(uid: uid) { [weak self] events in
+            guard let self else {
+                completion()
+                return
+            }
+            let toLeave = Self.joinedEventsToLeave(events, uid: uid)
+            self.leaveEventsInBatches(toLeave, uid: uid, completion: completion)
+        }
+    }
+
+    /// Fetches every event the user joined, as event id -> creatorUid,
+    /// one page at a time. A failed page ends the fetch (best effort).
+    private func fetchJoinedEvents(uid: String,
+                                   after lastDoc: QueryDocumentSnapshot? = nil,
+                                   found: [String: String] = [:],
+                                   completion: @escaping ([String: String]) -> Void) {
+        var query: Query = db.collection("events")
+            .whereField("playerUids", arrayContains: uid)
+            .limit(to: Self.deleteAccountBatchLimit)
+        if let lastDoc {
+            query = query.start(afterDocument: lastDoc)
+        }
+        query.getDocuments { [weak self] snapshot, _ in
+            guard let self, let snapshot else {
+                completion(found)
+                return
+            }
+            var updated = found
+            for doc in snapshot.documents {
+                updated[doc.documentID] = doc.data()["creatorUid"] as? String ?? ""
+            }
+            if snapshot.documents.count < Self.deleteAccountBatchLimit {
+                completion(updated)
+            } else {
+                self.fetchJoinedEvents(uid: uid, after: snapshot.documents.last,
+                                       found: updated, completion: completion)
+            }
+        }
+    }
+
+    /// Removes `uid` from playerUids of the given events, in batches of
+    /// at most `deleteAccountBatchLimit` updates per commit. A failed
+    /// batch is swallowed and the rest still run.
+    private func leaveEventsInBatches(_ ids: [String], uid: String, completion: @escaping () -> Void) {
+        let chunks = Self.chunked(ids, size: Self.deleteAccountBatchLimit)
+        leaveEventChunks(chunks, uid: uid, index: 0, completion: completion)
+    }
+
+    private func leaveEventChunks(_ chunks: [[String]], uid: String, index: Int,
+                                  completion: @escaping () -> Void) {
+        guard index < chunks.count else {
+            completion()
+            return
+        }
+        let batch = db.batch()
+        chunks[index].forEach { eventId in
+            batch.updateData(["playerUids": FieldValue.arrayRemove([uid])],
+                             forDocument: db.collection("events").document(eventId))
+        }
+        batch.commit { [weak self] _ in
+            guard let self else {
+                completion()
+                return
+            }
+            self.leaveEventChunks(chunks, uid: uid, index: index + 1, completion: completion)
         }
     }
 
