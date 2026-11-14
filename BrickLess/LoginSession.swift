@@ -224,10 +224,57 @@ class SessionStore: ObservableObject {
 
     // MARK: - Delete account (App Store Guideline 5.1.1(v))
 
+    /// One cleanup query for Delete Account: every doc in `collectionPath`
+    /// where `field == value`, or every doc in the collection when `field`
+    /// is nil (the blocks subcollection). Pure value type so the unit
+    /// tests can pin down exactly what cleanup covers without Firebase.
+    struct DeleteAccountQuery: Equatable {
+        let collectionPath: String
+        let field: String?
+        let value: String?
+    }
+
+    /// Firestore allows at most 500 writes per batch, so cleanup deletes
+    /// are chunked at this size. Query pages use the same size.
+    static let deleteAccountBatchLimit = 500
+
+    /// Splits a list into chunks of at most `size` items. Pure, so the
+    /// unit tests cover the batch-limit math without Firebase.
+    static func chunked<T>(_ items: [T], size: Int) -> [[T]] {
+        guard size > 0 else { return [] }
+        var chunks: [[T]] = []
+        var index = 0
+        while index < items.count {
+            chunks.append(Array(items[index..<min(index + size, items.count)]))
+            index += size
+        }
+        return chunks
+    }
+
+    /// The collections Delete Account cleans up, as query descriptors.
+    /// Covers, for the deleting user:
+    /// - friendships in either direction (fromUid or toUid)
+    /// - bookings they made (bookedBy)
+    /// - blocks they created (blocks/{uid}/blocked, every doc)
+    /// - reports they filed (reporterUid)
+    /// Out of scope on purpose: events they created (needs chat-message
+    /// cleanup, a separate fix) and removing them from events they
+    /// joined. Nothing here touches other users' data.
+    static func deleteAccountCleanupQueries(uid: String) -> [DeleteAccountQuery] {
+        [
+            DeleteAccountQuery(collectionPath: "friendships", field: "fromUid", value: uid),
+            DeleteAccountQuery(collectionPath: "friendships", field: "toUid", value: uid),
+            DeleteAccountQuery(collectionPath: "bookings", field: "bookedBy", value: uid),
+            DeleteAccountQuery(collectionPath: "blocks/\(uid)/blocked", field: nil, value: nil),
+            DeleteAccountQuery(collectionPath: "reports", field: "reporterUid", value: uid),
+        ]
+    }
+
     /// Deletes the account entirely, in the app: Firestore profile and
-    /// username reservation first, then the Firebase Auth user. Firebase
-    /// may require a recent sign-in; in that case the user is told to sign
-    /// out and back in, then try again.
+    /// username reservation first, then best-effort cleanup of the user's
+    /// friendships, bookings, blocks and reports, then the Firebase Auth
+    /// user. Firebase may require a recent sign-in; in that case the user
+    /// is told to sign out and back in, then try again.
     func deleteAccount(completion: @escaping (String?) -> Void) {
         guard let user = firebaseUser else {
             completion("You are not signed in.")
@@ -242,25 +289,126 @@ class SessionStore: ObservableObject {
         }
         batch.commit { [weak self] _ in
             // Firestore cleanup is best effort; the Auth delete is the point.
-            user.delete { [weak self] error in
-                guard let self else { return }
-                self.isLoading = false
-                if let error {
-                    let nsError = error as NSError
-                    // The Firebase version Xcode resolved makes
-                    // AuthErrorCode a struct whose cases live on the
-                    // nested Code enum, so the raw value is read there.
-                    if AuthErrorCode.Code(rawValue: nsError.code) == .requiresRecentLogin {
-                        completion("For security, sign out and sign back in, then delete your account again.")
-                    } else {
-                        completion(Self.friendlyError(error))
+            guard let self else { return }
+            self.deleteAccountCleanup(uid: uid) {
+                user.delete { [weak self] error in
+                    guard let self else { return }
+                    self.isLoading = false
+                    if let error {
+                        let nsError = error as NSError
+                        // The Firebase version Xcode resolved makes
+                        // AuthErrorCode a struct whose cases live on the
+                        // nested Code enum, so the raw value is read there.
+                        if AuthErrorCode.Code(rawValue: nsError.code) == .requiresRecentLogin {
+                            completion("For security, sign out and sign back in, then delete your account again.")
+                        } else {
+                            completion(Self.friendlyError(error))
+                        }
+                        return
                     }
-                    return
+                    self.profile = nil
+                    self.needsProfileSetup = false
+                    completion(nil)
                 }
-                self.profile = nil
-                self.needsProfileSetup = false
-                completion(nil)
             }
+        }
+    }
+
+    /// Best-effort cleanup for Delete Account: fetches every doc matching
+    /// `deleteAccountCleanupQueries(uid:)` (paged, so a user with more
+    /// than one page of friendships/bookings/blocks/reports is fully
+    /// covered), then deletes them in batches of at most
+    /// `deleteAccountBatchLimit`. Any failure (query or batch) is
+    /// swallowed: cleanup never blocks the Auth delete, and `completion`
+    /// always runs exactly once. The `reports` query also needs the
+    /// rules to let the reporter read and delete their own reports;
+    /// without that rule those docs are silently skipped.
+    private func deleteAccountCleanup(uid: String, completion: @escaping () -> Void) {
+        let queries = Self.deleteAccountCleanupQueries(uid: uid)
+        collectCleanupRefs(queries: queries, index: 0, found: []) { [weak self] refs in
+            guard let self else {
+                // Store gone mid-cleanup: skip the deletes, but still
+                // run completion so the Auth delete is never blocked.
+                completion()
+                return
+            }
+            self.deleteRefsInBatches(refs, completion: completion)
+        }
+    }
+
+    /// Runs each cleanup query in turn, accumulating the document refs.
+    /// Refs are deduplicated by path: the two friendships queries can
+    /// overlap if a user ever friended themself.
+    private func collectCleanupRefs(queries: [DeleteAccountQuery], index: Int,
+                                    found: [DocumentReference],
+                                    completion: @escaping ([DocumentReference]) -> Void) {
+        guard index < queries.count else {
+            var seen = Set<String>()
+            let deduped = found.filter { seen.insert($0.path).inserted }
+            completion(deduped)
+            return
+        }
+        fetchCleanupRefs(for: queries[index], found: found) { [weak self] updated in
+            guard let self else {
+                completion(updated)
+                return
+            }
+            self.collectCleanupRefs(queries: queries, index: index + 1,
+                                    found: updated, completion: completion)
+        }
+    }
+
+    /// Fetches every doc matching one cleanup query, one page at a time.
+    /// A failed page ends that query (best effort) instead of failing
+    /// the whole cleanup.
+    private func fetchCleanupRefs(for query: DeleteAccountQuery,
+                                  after lastDoc: QueryDocumentSnapshot? = nil,
+                                  found: [DocumentReference],
+                                  completion: @escaping ([DocumentReference]) -> Void) {
+        var firestoreQuery: Query = db.collection(query.collectionPath)
+        if let field = query.field, let value = query.value {
+            firestoreQuery = firestoreQuery.whereField(field, isEqualTo: value)
+        }
+        firestoreQuery = firestoreQuery.limit(to: Self.deleteAccountBatchLimit)
+        if let lastDoc {
+            firestoreQuery = firestoreQuery.start(afterDocument: lastDoc)
+        }
+        firestoreQuery.getDocuments { [weak self] snapshot, _ in
+            guard let self, let snapshot else {
+                completion(found)
+                return
+            }
+            let updated = found + snapshot.documents.map { $0.reference }
+            if snapshot.documents.count < Self.deleteAccountBatchLimit {
+                completion(updated)
+            } else {
+                self.fetchCleanupRefs(for: query, after: snapshot.documents.last,
+                                      found: updated, completion: completion)
+            }
+        }
+    }
+
+    /// Deletes refs in batches of at most `deleteAccountBatchLimit`.
+    /// A failed batch is swallowed and the rest still run.
+    private func deleteRefsInBatches(_ refs: [DocumentReference], completion: @escaping () -> Void) {
+        let chunks = Self.chunked(refs, size: Self.deleteAccountBatchLimit)
+        deleteRefChunks(chunks, index: 0, completion: completion)
+    }
+
+    private func deleteRefChunks(_ chunks: [[DocumentReference]], index: Int,
+                                 completion: @escaping () -> Void) {
+        guard index < chunks.count else {
+            completion()
+            return
+        }
+        let batch = db.batch()
+        chunks[index].forEach { batch.deleteDocument($0) }
+        batch.commit { [weak self] _ in
+            guard let self else {
+                completion()
+                return
+            }
+            self.deleteRefChunks(chunks, index: index + 1, completion: completion)
         }
     }
 

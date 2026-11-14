@@ -63,6 +63,7 @@
 		9BFFB67D8AECDC9275EBB853 /* BookingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9C79BAAA898A534FF2558EC /* BookingTests.swift */; };
 		EB626D8F61B9E542FFF0BBA2 /* ChatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AA2E5A6893D4D5D3E380F72 /* ChatTests.swift */; };
 		A4FC153A53780FC8E5EAF78E /* CourtTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9CC7F8E3A3379E571796F87 /* CourtTests.swift */; };
+		701319E55C493CD4ADAC004D /* DeleteAccountTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89AF132552F589117EE12377 /* DeleteAccountTests.swift */; };
 		0E969DB0BDE74E6A14B4067D /* EventTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8867DBCF971D9C6DD212E1EF /* EventTests.swift */; };
 		4755038AEEC7F1BE8394F095 /* FriendsAndPlayersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A59CC56B946E54D18372B661 /* FriendsAndPlayersTests.swift */; };
 		8BC34E401FDF4FD6AC73D938 /* PlayersFilteringTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A47C69329801475DB07CA8AC /* PlayersFilteringTests.swift */; };
@@ -113,6 +114,7 @@
 		D9C79BAAA898A534FF2558EC /* BookingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookingTests.swift; sourceTree = "<group>"; };
 		4AA2E5A6893D4D5D3E380F72 /* ChatTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatTests.swift; sourceTree = "<group>"; };
 		E9CC7F8E3A3379E571796F87 /* CourtTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourtTests.swift; sourceTree = "<group>"; };
+		89AF132552F589117EE12377 /* DeleteAccountTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountTests.swift; sourceTree = "<group>"; };
 		8867DBCF971D9C6DD212E1EF /* EventTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventTests.swift; sourceTree = "<group>"; };
 		A59CC56B946E54D18372B661 /* FriendsAndPlayersTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsAndPlayersTests.swift; sourceTree = "<group>"; };
 		A47C69329801475DB07CA8AC /* PlayersFilteringTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayersFilteringTests.swift; sourceTree = "<group>"; };
@@ -233,6 +235,7 @@
 				D9C79BAAA898A534FF2558EC /* BookingTests.swift */,
 				4AA2E5A6893D4D5D3E380F72 /* ChatTests.swift */,
 				E9CC7F8E3A3379E571796F87 /* CourtTests.swift */,
+				89AF132552F589117EE12377 /* DeleteAccountTests.swift */,
 				8867DBCF971D9C6DD212E1EF /* EventTests.swift */,
 				A59CC56B946E54D18372B661 /* FriendsAndPlayersTests.swift */,
 				A47C69329801475DB07CA8AC /* PlayersFilteringTests.swift */,
@@ -417,6 +420,7 @@
 				9BFFB67D8AECDC9275EBB853 /* BookingTests.swift in Sources */,
 				EB626D8F61B9E542FFF0BBA2 /* ChatTests.swift in Sources */,
 				A4FC153A53780FC8E5EAF78E /* CourtTests.swift in Sources */,
+				701319E55C493CD4ADAC004D /* DeleteAccountTests.swift in Sources */,
 				0E969DB0BDE74E6A14B4067D /* EventTests.swift in Sources */,
 				4755038AEEC7F1BE8394F095 /* FriendsAndPlayersTests.swift in Sources */,
 				8BC34E401FDF4FD6AC73D938 /* PlayersFilteringTests.swift in Sources */,
