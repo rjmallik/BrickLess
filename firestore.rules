@@ -87,12 +87,21 @@ service cloud.firestore {
     }
 
     // Courts/fields: anyone signed in can read; any signed-in user can add
-    // one; only the creator can edit it.
+    // one; only the creator can edit it. Verification is admin-only:
+    // a new community venue is always unverified (a pending request), so
+    // the creator must set verified == false on create and cannot flip
+    // it on update. Only an admin in the Firebase console can verify a
+    // venue, by setting verified to true on the court doc. Until then
+    // the venue's booking link stays hidden in the app, so a fake venue
+    // cannot carry a scam booking link.
     match /courts/{id} {
       allow read: if signedIn();
       allow create: if signedIn()
-        && request.resource.data.createdBy == request.auth.uid;
-      allow update: if signedIn() && resource.data.createdBy == request.auth.uid;
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.verified == false;
+      allow update: if signedIn()
+        && resource.data.createdBy == request.auth.uid
+        && request.resource.data.verified == resource.data.verified;
       allow delete: if false;
     }
 

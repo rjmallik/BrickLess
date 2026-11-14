@@ -8,6 +8,7 @@ struct EventsView: View {
     var court: Court? = nil // when opened from a court, new games default to it
     @StateObject private var store = EventStore()
     @State private var showingCreate = false
+    @State private var showingMyBookings = false
     @State private var selectedList = GamesList.all
     /// Which sport tab is showing. When opened from a court it starts
     /// on that court's sport; otherwise it starts on All.
@@ -92,12 +93,18 @@ struct EventsView: View {
         }
         .navigationTitle("Games")
         .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button("My Bookings") { showingMyBookings = true }
+            }
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button("New Game") { showingCreate = true }
             }
         }
         .sheet(isPresented: $showingCreate) {
             CreateEventForm(store: store, session: session, court: court)
+        }
+        .sheet(isPresented: $showingMyBookings) {
+            NavigationView { MyBookingsView() }
         }
         .onAppear {
             store.startListeningUpcoming()

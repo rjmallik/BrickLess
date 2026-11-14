@@ -13,6 +13,17 @@ struct Court: Codable, Identifiable, Hashable {
     var surface: String
     var lit: Bool
     var indoor: Bool
+    /// Paid booking link for the venue: the venue's own site, where the
+    /// player books and pays. Nil for venues that do not take bookings.
+    /// Only ever shown when the venue is indoor, verified, and this link
+    /// is set (see canShowBookingLink). We take no payment in-app.
+    var bookingURL: String? = nil
+    /// Verified by PlayMatch (admin). OpenStreetMap venues are trusted
+    /// public data and are verified. Community (user-submitted) venues
+    /// start unverified — a pending request — and their booking link
+    /// stays hidden until verified, so a fake venue cannot carry a
+    /// scam booking link.
+    var verified: Bool = false
     var source: String // "openstreetmap" or "community"
     var createdBy: String?
     /// ~1 km grid cell this court sits in, e.g. "4760_-12233".
@@ -79,6 +90,34 @@ struct Court: Codable, Identifiable, Hashable {
         case "pitch": return "pitches"
         default: return "courts"
         }
+    }
+
+    /// A raw booking-link string, validated: non-empty, a well-formed
+    /// http(s) URL with a host. Returns nil for a missing, blank, or
+    /// malformed link. Pure so it is unit-testable.
+    static func validatedBookingURLString(_ raw: String?) -> URL? {
+        guard let raw = raw?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !raw.isEmpty,
+              let url = URL(string: raw),
+              let scheme = url.scheme?.lowercased(),
+              (scheme == "http" || scheme == "https"),
+              url.host != nil else { return nil }
+        return url
+    }
+
+    /// The venue's booking URL, if it has a usable one. Pure so it is
+    /// unit-testable.
+    static func validatedBookingURL(_ court: Court) -> URL? {
+        validatedBookingURLString(court.bookingURL)
+    }
+
+    /// Whether the paid "Book this [venue]" link may be shown: the venue
+    /// must be indoor, verified, and carry a booking link. Any condition
+    /// failing hides the link, so an outdoor or unverified venue never
+    /// advertises a paid booking. Pure so it is unit-testable.
+    static func canShowBookingLink(_ court: Court) -> Bool {
+        guard court.indoor, court.verified else { return false }
+        return validatedBookingURL(court) != nil
     }
 
     var coordinate: CLLocationCoordinate2D {
@@ -214,6 +253,10 @@ class CourtStore: ObservableObject {
                     surface: tags["surface"] ?? "",
                     lit: tags["lit"] == "yes",
                     indoor: tags["indoor"] == "yes",
+                    // OSM is trusted public data, so its venues are
+                    // verified. (Community venues are the ones that
+                    // start unverified; see addCommunityCourt.)
+                    verified: true,
                     source: "openstreetmap",
                     gridKey: Court.gridKey(latitude: lat, longitude: lon)
                 )
@@ -239,12 +282,19 @@ class CourtStore: ObservableObject {
     }
 
     /// Let a player add a court the map is missing. It shows for everyone.
+    /// A new community venue is always unverified (a pending request):
+    /// the creator cannot self-verify, and its booking link stays hidden
+    /// until an admin verifies it. The booking link is only stored when
+    /// the venue is indoor and the creator said it takes bookings.
     func addCommunityCourt(name: String, sport: String, coordinate: CLLocationCoordinate2D,
                            surface: String, indoor: Bool, createdBy: String,
+                           bookingURL: String? = nil,
                            completion: @escaping (String?) -> Void) {
         let court = Court(id: UUID().uuidString, name: name, sport: sport,
                           latitude: coordinate.latitude, longitude: coordinate.longitude,
                           surface: surface, lit: false, indoor: indoor,
+                          bookingURL: bookingURL,
+                          verified: false,
                           source: "community", createdBy: createdBy,
                           gridKey: Court.gridKey(latitude: coordinate.latitude,
                                                  longitude: coordinate.longitude))

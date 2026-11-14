@@ -175,15 +175,46 @@ private struct CourtDetailView: View {
                 .foregroundColor(.secondary)
             Text(court.indoor ? "Indoor" : "Outdoor")
                 .foregroundColor(.secondary)
-            Text(court.source == "community" ? "Added by a player" : "From OpenStreetMap — hours and availability are not listed")
-                .font(.footnote).foregroundColor(.secondary)
+            // Verification: community venues are player-submitted and
+            // start unverified (a pending request); OSM venues are
+            // trusted public data. The paid booking link stays hidden
+            // until a community venue is verified, so a fake venue
+            // cannot carry a scam booking link.
+            if court.source == "community" {
+                if court.verified {
+                    Label("Verified", systemImage: "checkmark.seal.fill")
+                        .font(.footnote).foregroundColor(.green)
+                } else {
+                    Label("Added by a player — pending verification", systemImage: "clock")
+                        .font(.footnote).foregroundColor(.orange)
+                }
+            } else {
+                Text("From OpenStreetMap — hours and availability are not listed")
+                    .font(.footnote).foregroundColor(.secondary)
+            }
 
-            Button("Book this \(Court.venueWord(forSport: court.sport))") { showingBooking = true }
-                .foregroundColor(.white).frame(maxWidth: .infinity).padding()
-                .background(PlayMatchColors.brand).cornerRadius(8)
-            Button("Post a game here") { showingEvents = true }
+            // Paid venue rental, via the venue's own booking site: the
+            // player books and pays there; we take no payment in-app.
+            // Only for indoor, verified venues that carry a booking
+            // link. Outdoor and unverified venues never show it.
+            if Court.canShowBookingLink(court),
+               let bookingURL = Court.validatedBookingURL(court) {
+                Link("Book this \(Court.venueWord(forSport: court.sport))", destination: bookingURL)
+                    .foregroundColor(.white).frame(maxWidth: .infinity).padding()
+                    .background(PlayMatchColors.brand).cornerRadius(8)
+            }
+            // In-app time reservation for a pickup game (free, no
+            // payment). Separate from paid venue rental, so it is
+            // labelled as a reservation, not a booking.
+            Button("Reserve a time") { showingBooking = true }
                 .foregroundColor(.white).frame(maxWidth: .infinity).padding()
                 .background(SportTabs.pinStyle(forTag: court.sport).color).cornerRadius(8)
+            Button("Post a game here") { showingEvents = true }
+                .foregroundColor(SportTabs.pinStyle(forTag: court.sport).color)
+                .frame(maxWidth: .infinity).padding()
+                .overlay(RoundedRectangle(cornerRadius: 8)
+                    .stroke(SportTabs.pinStyle(forTag: court.sport).color, lineWidth: 1.5))
+                .cornerRadius(8)
             Spacer()
         }
         .padding()
@@ -208,6 +239,12 @@ private struct AddCourtView: View {
     /// it is a real sport, else basketball; the picker can change it.
     @State private var sport: String
     @State private var indoor = false
+    /// Paid bookings: only offered for indoor venues. The link is the
+    /// venue's own booking site, where players book and pay; we take no
+    /// payment in-app. A new venue is unverified (pending review), so
+    /// its link stays hidden until an admin verifies it.
+    @State private var allowsBookings = false
+    @State private var bookingURLText = ""
     @State private var errorMessage: String?
 
     init(store: CourtStore, session: SessionStore, coordinate: CLLocationCoordinate2D,
@@ -222,7 +259,7 @@ private struct AddCourtView: View {
     var body: some View {
         VStack(spacing: 12) {
             Text("Add a missing \(Court.venueWord(forSport: sport))").font(.title2.bold())
-            Text("Dropped at the centre of your map. Other players will see it.")
+            Text("Dropped at the centre of your map. Other players will see it. New places are pending verification until we review them.")
                 .font(.subheadline).foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
             TextField("Court or field name", text: $name)
@@ -239,13 +276,43 @@ private struct AddCourtView: View {
             .pickerStyle(.menu)
             .frame(maxWidth: .infinity, alignment: .leading)
             Toggle("Indoor", isOn: $indoor)
+            if indoor {
+                Toggle("Allows bookings", isOn: $allowsBookings)
+                if allowsBookings {
+                    TextField("Booking link (where players pay)", text: $bookingURLText)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                        .keyboardType(.URL)
+                    Text("Players will be sent to this link to book and pay. The venue stays pending verification until we review it.")
+                        .font(.footnote).foregroundColor(.secondary)
+                }
+            }
             if let errorMessage { Text(errorMessage).foregroundColor(.red) }
             Button("Add \(Court.venueWord(forSport: sport))") {
                 guard let uid = session.firebaseUser?.uid else { return }
+                // A booking link only counts for an indoor venue that
+                // takes bookings, and it must be a real web link.
+                let bookingLink: String?
+                if indoor && allowsBookings {
+                    let trimmed = bookingURLText.trimmingCharacters(in: .whitespacesAndNewlines)
+                    if trimmed.isEmpty {
+                        errorMessage = "Add the booking link, or turn off Allows bookings."
+                        return
+                    }
+                    guard Court.validatedBookingURLString(trimmed) != nil else {
+                        errorMessage = "That booking link does not look like a web link — it should start with https://"
+                        return
+                    }
+                    bookingLink = trimmed
+                } else {
+                    bookingLink = nil
+                }
                 let defaultName = Court.defaultName(forSport: sport)
                 store.addCommunityCourt(name: name.isEmpty ? defaultName : name,
                                         sport: sport, coordinate: coordinate,
-                                        surface: "", indoor: indoor, createdBy: uid) { error in
+                                        surface: "", indoor: indoor, createdBy: uid,
+                                        bookingURL: bookingLink) { error in
                     if let error { errorMessage = error } else { dismiss() }
                 }
             }

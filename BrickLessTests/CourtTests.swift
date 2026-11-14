@@ -103,4 +103,81 @@ final class CourtTests: XCTestCase {
         // "pitch" pluralises to "pitches", not "pitchs".
         XCTAssertEqual(Court.venueWordPlural(forSport: "multi"), "pitches")
     }
+
+    // MARK: - Paid booking link gating
+
+    private func makeVenue(indoor: Bool, verified: Bool, bookingURL: String?) -> Court {
+        Court(id: "venue", name: "Test venue", sport: "basketball",
+              latitude: 47.6062, longitude: -122.3321,
+              surface: "", lit: false, indoor: indoor,
+              bookingURL: bookingURL, verified: verified,
+              source: "community", createdBy: "user-1")
+    }
+
+    /// The paid "Book this [venue]" link shows only when the venue is
+    /// indoor, verified, and carries a booking link. Every condition
+    /// failing hides it.
+    func testCanShowBookingLinkNeedsIndoorVerifiedAndLink() {
+        let link = "https://example.com/book"
+        // All three conditions: shown.
+        XCTAssertTrue(Court.canShowBookingLink(makeVenue(indoor: true, verified: true, bookingURL: link)))
+        // Outdoor: hidden, even verified with a link.
+        XCTAssertFalse(Court.canShowBookingLink(makeVenue(indoor: false, verified: true, bookingURL: link)))
+        // Unverified: hidden, even indoor with a link (a fake venue
+        // cannot carry a scam booking link until we verify it).
+        XCTAssertFalse(Court.canShowBookingLink(makeVenue(indoor: true, verified: false, bookingURL: link)))
+        // No link: hidden, even indoor and verified.
+        XCTAssertFalse(Court.canShowBookingLink(makeVenue(indoor: true, verified: true, bookingURL: nil)))
+        // Blank link: hidden.
+        XCTAssertFalse(Court.canShowBookingLink(makeVenue(indoor: true, verified: true, bookingURL: "   ")))
+        // Malformed link: hidden.
+        XCTAssertFalse(Court.canShowBookingLink(makeVenue(indoor: true, verified: true, bookingURL: "not a link")))
+    }
+
+    func testValidatedBookingURLString() {
+        XCTAssertEqual(Court.validatedBookingURLString("https://example.com/book")?.absoluteString,
+                       "https://example.com/book")
+        XCTAssertEqual(Court.validatedBookingURLString("http://example.com/book")?.absoluteString,
+                       "http://example.com/book")
+        XCTAssertNil(Court.validatedBookingURLString(nil))
+        XCTAssertNil(Court.validatedBookingURLString(""))
+        XCTAssertNil(Court.validatedBookingURLString("   "))
+        XCTAssertNil(Court.validatedBookingURLString("not a link"))
+        XCTAssertNil(Court.validatedBookingURLString("ftp://example.com/book"))
+        XCTAssertNil(Court.validatedBookingURLString("https://"))
+        // Leading/trailing whitespace is trimmed, not rejected.
+        XCTAssertEqual(Court.validatedBookingURLString("  https://example.com/book  ")?.absoluteString,
+                       "https://example.com/book")
+    }
+
+    // MARK: - Verified defaults (decoding)
+
+    /// An old community court doc has no bookingURL or verified field:
+    /// it decodes as unverified with no booking link (pending review).
+    func testOldCommunityCourtDecodesAsUnverified() throws {
+        let json = """
+        {"id":"c1","name":"Park court","sport":"basketball",
+         "latitude":47.6062,"longitude":-122.3321,"surface":"",
+         "lit":false,"indoor":false,"source":"community",
+         "createdBy":"user-1","gridKey":"4760_-12233"}
+        """.data(using: .utf8)!
+        let court = try JSONDecoder().decode(Court.self, from: json)
+        XCTAssertFalse(court.verified)
+        XCTAssertNil(court.bookingURL)
+    }
+
+    /// A verified community venue decodes with its booking link intact.
+    func testVerifiedCommunityCourtDecodesWithBookingLink() throws {
+        let json = """
+        {"id":"c2","name":"Indoor arena","sport":"basketball",
+         "latitude":47.6062,"longitude":-122.3321,"surface":"wood",
+         "lit":true,"indoor":true,"bookingURL":"https://example.com/book",
+         "verified":true,"source":"community",
+         "createdBy":"user-1","gridKey":"4760_-12233"}
+        """.data(using: .utf8)!
+        let court = try JSONDecoder().decode(Court.self, from: json)
+        XCTAssertTrue(court.verified)
+        XCTAssertEqual(court.bookingURL, "https://example.com/book")
+        XCTAssertTrue(Court.canShowBookingLink(court))
+    }
 }
