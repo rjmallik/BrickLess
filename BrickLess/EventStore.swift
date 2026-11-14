@@ -31,6 +31,22 @@ struct GameEvent: Codable, Identifiable {
     var isFull: Bool { playerUids.count >= maxPlayers }
 
     func hasPlayer(_ uid: String) -> Bool { playerUids.contains(uid) }
+
+    /// Join decision for one user against this snapshot. The check is
+    /// snapshot-based: two users deciding against the same snapshot can
+    /// both see an open last spot, which is why the Firestore rules
+    /// also cap playerUids at maxPlayers.
+    enum JoinStatus: Equatable {
+        case alreadyJoined
+        case full
+        case canJoin
+    }
+
+    func joinStatus(for uid: String) -> JoinStatus {
+        if hasPlayer(uid) { return .alreadyJoined }
+        if isFull { return .full }
+        return .canJoin
+    }
 }
 
 /// One message in an event's group chat.
@@ -68,6 +84,37 @@ class EventStore: ObservableObject {
         messagesEventId = nil
     }
 
+    /// The create-event field checks, in the order createEvent reports
+    /// them. Pure: callers pass the already-trimmed title and court
+    /// name, and `now` is injected so tests can pin it. A game needs
+    /// 2-30 players, matching the setup stepper.
+    static func validateEvent(title: String, courtName: String, start: Date, end: Date,
+                              maxPlayers: Int, now: Date) -> String? {
+        guard !title.isEmpty else { return "Give the game a title." }
+        guard !courtName.isEmpty else { return "Pick a court or type a court name." }
+        guard end > start else { return "End time must be after the start time." }
+        guard start > now else { return "Pick a time in the future." }
+        guard maxPlayers >= 2 else { return "A game needs at least 2 players." }
+        guard maxPlayers <= 30 else { return "A game can have at most 30 players." }
+        return nil
+    }
+
+    /// Chat is visible only to players joined to this event.
+    static func canViewChat(event: GameEvent, uid: String) -> Bool {
+        event.hasPlayer(uid)
+    }
+
+    /// Chat messages with blocked senders removed, in order.
+    static func filterVisibleMessages(_ messages: [EventMessage], blockedUids: Set<String>) -> [EventMessage] {
+        messages.filter { !blockedUids.contains($0.senderUid) }
+    }
+
+    /// Future events, soonest first. Pure version of the upcoming
+    /// listener's filter + sort, so the ordering rule is unit-tested.
+    static func upcomingEvents(_ events: [GameEvent], now: Date) -> [GameEvent] {
+        events.filter { $0.startTime > now }.sorted { $0.startTime < $1.startTime }
+    }
+
     /// Live list of future events, soonest first, capped at 50.
     func startListeningUpcoming() {
         listeners.append(
@@ -77,9 +124,10 @@ class EventStore: ObservableObject {
                 .limit(to: 50)
                 .addSnapshotListener { [weak self] snapshot, _ in
                     let now = Date()
-                    self?.upcomingEvents = snapshot?.documents.compactMap {
+                    let decoded = snapshot?.documents.compactMap {
                         try? $0.data(as: GameEvent.self)
-                    }.filter { $0.startTime > now } ?? []
+                    } ?? []
+                    self?.upcomingEvents = Self.upcomingEvents(decoded, now: now)
                 }
         )
     }
@@ -141,7 +189,7 @@ class EventStore: ObservableObject {
 
     /// Chat messages with blocked senders removed.
     var visibleMessages: [EventMessage] {
-        messages.filter { !blockedUids.contains($0.senderUid) }
+        Self.filterVisibleMessages(messages, blockedUids: blockedUids)
     }
 
     // MARK: - Create / join / leave / delete
@@ -157,24 +205,9 @@ class EventStore: ObservableObject {
         }
         let title = title.trimmingCharacters(in: .whitespaces)
         let courtName = court?.name ?? courtName.trimmingCharacters(in: .whitespaces)
-        guard !title.isEmpty else {
-            completion("Give the game a title.")
-            return
-        }
-        guard !courtName.isEmpty else {
-            completion("Pick a court or type a court name.")
-            return
-        }
-        guard end > start else {
-            completion("End time must be after the start time.")
-            return
-        }
-        guard start > Date() else {
-            completion("Pick a time in the future.")
-            return
-        }
-        guard maxPlayers >= 2 else {
-            completion("A game needs at least 2 players.")
+        if let error = Self.validateEvent(title: title, courtName: courtName, start: start, end: end,
+                                          maxPlayers: maxPlayers, now: Date()) {
+            completion(error)
             return
         }
 
@@ -213,13 +246,15 @@ class EventStore: ObservableObject {
                 completion("That game no longer exists.")
                 return
             }
-            guard !current.hasPlayer(uid) else {
+            switch current.joinStatus(for: uid) {
+            case .alreadyJoined:
                 completion(nil)
                 return
-            }
-            guard !current.isFull else {
+            case .full:
                 completion("That game is full.")
                 return
+            case .canJoin:
+                break
             }
             self.db.collection("events").document(id).updateData([
                 "playerUids": FieldValue.arrayUnion([uid])
@@ -283,7 +318,7 @@ class EventStore: ObservableObject {
         }
         let text = text.trimmingCharacters(in: .whitespaces)
         guard !text.isEmpty else { return }
-        guard event.hasPlayer(uid) else {
+        guard Self.canViewChat(event: event, uid: uid) else {
             completion("Join the game to chat with the group.")
             return
         }

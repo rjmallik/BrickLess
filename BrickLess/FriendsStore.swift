@@ -119,6 +119,18 @@ class FriendsStore: ObservableObject {
 
     private var friendUids: Set<String> = []
 
+    /// Normalizes a username search query: trimmed and lowercased.
+    /// Returns nil when it is too short to search (under 2 chars).
+    static func normalizedSearchQuery(_ query: String) -> String? {
+        let q = query.trimmingCharacters(in: .whitespaces).lowercased()
+        return q.count >= 2 ? q : nil
+    }
+
+    /// Search hits with the signed-in user and blocked users removed.
+    static func filterSearchResults(_ profiles: [UserProfile], myUid: String, blockedUids: Set<String>) -> [UserProfile] {
+        profiles.filter { $0.id != myUid && !blockedUids.contains($0.id ?? "") }
+    }
+
     private func resolveFriends(from snapshot: QuerySnapshot?, myUid: String, otherKey: String) {
         let uids = Set(snapshot?.documents.compactMap { $0.data()[otherKey] as? String } ?? [])
         friendUids.formUnion(uids)
@@ -136,8 +148,7 @@ class FriendsStore: ObservableObject {
 
     /// Prefix search by username, e.g. "rj" finds "rjhoops".
     func searchUsers(query: String) {
-        let q = query.trimmingCharacters(in: .whitespaces).lowercased()
-        guard q.count >= 2, let uid else {
+        guard let q = Self.normalizedSearchQuery(query), let uid else {
             searchResults = []
             return
         }
@@ -154,9 +165,11 @@ class FriendsStore: ObservableObject {
                     self.errorMessage = SessionStore.friendlyError(error)
                     return
                 }
-                self.searchResults = (snapshot?.documents.compactMap {
-                    try? $0.data(as: UserProfile.self)
-                } ?? []).filter { $0.id != uid && !self.blockedUids.contains($0.id ?? "") }
+                self.searchResults = Self.filterSearchResults(
+                    snapshot?.documents.compactMap {
+                        try? $0.data(as: UserProfile.self)
+                    } ?? [],
+                    myUid: uid, blockedUids: self.blockedUids)
             }
     }
 

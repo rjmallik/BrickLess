@@ -38,16 +38,23 @@ class PlayersStore: ObservableObject {
         searchText.trimmingCharacters(in: .whitespaces).count >= 2
     }
 
-    /// Players to show: search results while searching, otherwise the
-    /// browsed pages, both with the level/city filters applied.
-    var visiblePlayers: [UserProfile] {
-        let base = isSearching ? searchResults : players
-        return base.filter { profile in
+    /// The browse/search filter, as a pure function: level (unless
+    /// "All") must match highestLevel, and a non-blank city filter
+    /// must appear in the profile city (case-insensitive).
+    static func filteredPlayers(_ profiles: [UserProfile], levelFilter: String, cityFilter: String) -> [UserProfile] {
+        profiles.filter { profile in
             if levelFilter != "All", profile.highestLevel != levelFilter { return false }
             let city = cityFilter.trimmingCharacters(in: .whitespaces)
             if !city.isEmpty, !profile.city.localizedCaseInsensitiveContains(city) { return false }
             return true
         }
+    }
+
+    /// Players to show: search results while searching, otherwise the
+    /// browsed pages, both with the level/city filters applied.
+    var visiblePlayers: [UserProfile] {
+        let base = isSearching ? searchResults : players
+        return Self.filteredPlayers(base, levelFilter: levelFilter, cityFilter: cityFilter)
     }
 
     /// First page (or reload). Blocked users are fetched first so they

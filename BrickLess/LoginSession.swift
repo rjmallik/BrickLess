@@ -49,6 +49,44 @@ class SessionStore: ObservableObject {
         }
     }
 
+    // MARK: - Validation (pure, unit-tested)
+
+    /// Signup field checks, in the order signUp reports them. Pure:
+    /// no Firebase calls, so the unit tests cover the exact messages
+    /// a new user sees. Callers pass the already-trimmed email
+    /// (lowercased) and username, exactly as signUp prepares them.
+    static func validateSignUp(email: String, username: String, password: String) -> String? {
+        if !UserProfile.isValidEmail(email) {
+            return "Enter a valid email address."
+        }
+        if !UserProfile.isValidUsername(username) {
+            return "Username must be 3-20 letters, numbers or underscores."
+        }
+        if UserProfile.containsBlockedWord(username) {
+            return "That username is not allowed. Pick another one."
+        }
+        if password.count < 6 {
+            return "Password must be at least 6 characters."
+        }
+        return nil
+    }
+
+    /// Profile-setup name checks, in the order saveProfile reports
+    /// them. Callers pass the already-trimmed display name and username.
+    static func validateProfile(displayName: String, username: String) -> String? {
+        if displayName.isEmpty {
+            return "Enter your display name."
+        }
+        if !UserProfile.isValidUsername(username) {
+            return "Username must be 3-20 letters, numbers or underscores."
+        }
+        if UserProfile.containsBlockedWord(username)
+            || UserProfile.containsBlockedWord(displayName) {
+            return "That name is not allowed. Pick another one."
+        }
+        return nil
+    }
+
     // MARK: - Sign up
 
     /// Creates the Auth account, reserves the username, and writes the
@@ -58,20 +96,8 @@ class SessionStore: ObservableObject {
         let email = email.trimmingCharacters(in: .whitespaces).lowercased()
         let username = username.trimmingCharacters(in: .whitespaces)
 
-        if !UserProfile.isValidEmail(email) {
-            completion(false, "Enter a valid email address.")
-            return
-        }
-        if !UserProfile.isValidUsername(username) {
-            completion(false, "Username must be 3-20 letters, numbers or underscores.")
-            return
-        }
-        if UserProfile.containsBlockedWord(username) {
-            completion(false, "That username is not allowed. Pick another one.")
-            return
-        }
-        if password.count < 6 {
-            completion(false, "Password must be at least 6 characters.")
+        if let error = Self.validateSignUp(email: email, username: username, password: password) {
+            completion(false, error)
             return
         }
 
@@ -276,17 +302,8 @@ class SessionStore: ObservableObject {
         }
         let displayName = displayName.trimmingCharacters(in: .whitespaces)
         let username = username.trimmingCharacters(in: .whitespaces)
-        guard !displayName.isEmpty else {
-            completion("Enter your display name.")
-            return
-        }
-        guard UserProfile.isValidUsername(username) else {
-            completion("Username must be 3-20 letters, numbers or underscores.")
-            return
-        }
-        guard !UserProfile.containsBlockedWord(username),
-              !UserProfile.containsBlockedWord(displayName) else {
-            completion("That name is not allowed. Pick another one.")
+        if let error = Self.validateProfile(displayName: displayName, username: username) {
+            completion(error)
             return
         }
 

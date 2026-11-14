@@ -81,4 +81,20 @@ struct UserProfile: Codable, Identifiable {
         guard parts.count == 2, !parts[0].isEmpty, !parts[1].isEmpty else { return false }
         return parts[1].contains(".")
     }
+
+    /// Parses the optional age field from profile setup: blank means
+    /// "not provided", a number in 13...100 is valid, anything else is
+    /// invalid. Mirrors the setup screen, which uses plain Int(text)
+    /// (no whitespace trimming), so " 25" is invalid.
+    enum AgeInput: Equatable {
+        case blank
+        case valid(Int)
+        case invalid
+    }
+
+    static func parseAge(_ text: String) -> AgeInput {
+        if text.trimmingCharacters(in: .whitespaces).isEmpty { return .blank }
+        if let parsed = Int(text), ageRange.contains(parsed) { return .valid(parsed) }
+        return .invalid
+    }
 }

@@ -40,6 +40,31 @@ class BookingStore: ObservableObject {
 
     deinit { listener?.remove() }
 
+    /// Pure time check shared by bookCourt and the unit tests: two
+    /// half-open ranges [start, end) overlap when each starts before
+    /// the other ends. Back-to-back slots (one ends as the other
+    /// starts) do not overlap.
+    static func timeRangesOverlap(start1: Date, end1: Date, start2: Date, end2: Date) -> Bool {
+        start1 < end2 && end1 > start2
+    }
+
+    /// True when any existing booking for the court overlaps the
+    /// requested slot. Overlap is user-agnostic: a slot taken by
+    /// another player blocks this one too.
+    static func isCourtBooked(_ existing: [(start: Date, end: Date)], start: Date, end: Date) -> Bool {
+        existing.contains {
+            timeRangesOverlap(start1: $0.start, end1: $0.end, start2: start, end2: end)
+        }
+    }
+
+    /// The two time guards in bookCourt, as a pure function (`now` is
+    /// injected so tests can pin it).
+    static func validateBookingTime(start: Date, end: Date, now: Date) -> String? {
+        guard end > start else { return "End time must be after the start time." }
+        guard start > now else { return "Pick a time in the future." }
+        return nil
+    }
+
     func startListening() {
         guard let uid = Auth.auth().currentUser?.uid else { return }
         listener?.remove()
@@ -63,12 +88,8 @@ class BookingStore: ObservableObject {
             completion("You are not signed in.")
             return
         }
-        guard end > start else {
-            completion("End time must be after the start time.")
-            return
-        }
-        guard start > Date() else {
-            completion("Pick a time in the future.")
+        if let error = Self.validateBookingTime(start: start, end: end, now: Date()) {
+            completion(error)
             return
         }
         isLoading = true
@@ -82,7 +103,11 @@ class BookingStore: ObservableObject {
                     guard let existingEnd = (doc.data()["endTime"] as? Timestamp)?.dateValue() else {
                         return false
                     }
-                    return existingEnd > start
+                    // The query already filters startTime < end; the
+                    // fallback only covers a doc missing startTime.
+                    let existingStart = (doc.data()["startTime"] as? Timestamp)?.dateValue() ?? .distantPast
+                    return Self.timeRangesOverlap(start1: existingStart, end1: existingEnd,
+                                                  start2: start, end2: end)
                 } ?? false
                 guard !overlaps else {
                     self.isLoading = false

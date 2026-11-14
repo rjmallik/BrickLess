@@ -21,6 +21,31 @@ struct Court: Codable, Identifiable, Hashable {
     /// get this computed in code; community courts store it in Firestore.
     var gridKey: String = ""
 
+    /// OSM sport tag string (e.g. "basketball;soccer") to BrickLess
+    /// sport: basketball, soccer, football, or multi. A bare
+    /// "football" tag means soccer in most of the world; American
+    /// football is "american_football".
+    static func sport(fromSportsTag tag: String) -> String {
+        let hasBasketball = tag.contains("basketball")
+        let hasSoccer = tag.contains("soccer")
+            || tag.split(separator: ";").contains("football")
+        let hasFootball = tag.contains("american_football")
+        let sportCount = [hasBasketball, hasSoccer, hasFootball].filter { $0 }.count
+        if sportCount > 1 { return "multi" }
+        if hasFootball { return "football" }
+        if hasSoccer { return "soccer" }
+        return "basketball"
+    }
+
+    /// Default map label for a sport when OSM has no name for the pitch.
+    static func defaultName(forSport sport: String) -> String {
+        switch sport {
+        case "soccer": return "Soccer field"
+        case "football": return "Football field"
+        default: return "Basketball court"
+        }
+    }
+
     var coordinate: CLLocationCoordinate2D {
         CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
     }
@@ -142,16 +167,8 @@ class CourtStore: ObservableObject {
                 let sports = tags["sport"] ?? "basketball"
                 // OSM tags: basketball, soccer, american_football.
                 // A bare "football" tag means soccer in most of the world.
-                let hasBasketball = sports.contains("basketball")
-                let hasSoccer = sports.contains("soccer")
-                    || sports.split(separator: ";").contains("football")
-                let hasFootball = sports.contains("american_football")
-                let sportCount = [hasBasketball, hasSoccer, hasFootball].filter { $0 }.count
-                let sport = sportCount > 1 ? "multi"
-                    : hasFootball ? "football"
-                    : hasSoccer ? "soccer" : "basketball"
-                let defaultName = sport == "soccer" ? "Soccer field"
-                    : sport == "football" ? "Football field" : "Basketball court"
+                let sport = Court.sport(fromSportsTag: sports)
+                let defaultName = Court.defaultName(forSport: sport)
                 return Court(
                     id: "osm-\(element.type)-\(element.id)",
                     name: tags["name"] ?? defaultName,

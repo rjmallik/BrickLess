@@ -129,12 +129,12 @@ struct ProfileSetupView: View {
                     errorMessage = nil
                     // Age is optional, but when entered it must be a number in range.
                     let age: Int?
-                    if ageText.trimmingCharacters(in: .whitespaces).isEmpty {
+                    switch UserProfile.parseAge(ageText) {
+                    case .blank:
                         age = nil
-                    } else if let parsed = Int(ageText),
-                              UserProfile.ageRange.contains(parsed) {
-                        age = parsed
-                    } else {
+                    case .valid(let value):
+                        age = value
+                    case .invalid:
                         errorMessage = "Enter an age between 13 and 100, or leave it blank."
                         return
                     }
