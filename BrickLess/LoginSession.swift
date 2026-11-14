@@ -12,8 +12,10 @@ import FirebaseFirestoreSwift
 ///   password; Firestore owns the profile and the unique username.
 /// - Sign in with email or username + password.
 /// - A new account goes through profile setup before reaching Home.
-/// - The session survives restarts: Firebase restores the signed-in user
-///   and the profile is fetched from Firestore.
+/// - The session survives restarts only when the user asked to be
+///   remembered: Firebase restores the signed-in user, but on launch
+///   a restored session without "Remember me" is signed out so the
+///   sign-in screen shows first instead of jumping to profile setup.
 ///
 /// Firebase console setup still needed (once, in the console, not code):
 /// enable Email/Password in Authentication > Sign-in method, and create
@@ -29,9 +31,34 @@ class SessionStore: ObservableObject {
     private let db = Firestore.firestore()
     private var authListener: AuthStateDidChangeListenerHandle?
 
+    /// True once the launch-time auth decision has run. Firebase fires
+    /// the auth listener once at startup (with the restored user, if
+    /// any) and again on every sign-in/sign-out. Only the first fire
+    /// is the launch decision; later fires must not sign the user out.
+    private var didHandleLaunchAuth = false
+
     init() {
         authListener = Auth.auth().addStateDidChangeListener { [weak self] _, user in
             guard let self else { return }
+            if !self.didHandleLaunchAuth {
+                self.didHandleLaunchAuth = true
+                // Launch only: if a session was restored but the user
+                // did not ask to be remembered, sign them out so the
+                // sign-in screen shows instead of jumping straight to
+                // profile setup. A fresh sign-in during the session
+                // fires the listener again, but the flag is already
+                // set, so it stays signed in for that session; the
+                // choice only controls the next launch.
+                if Self.launchSessionDecision(restoredUserExists: user != nil,
+                                             rememberMe: Self.storedRememberMe()) == .signOutToLogin {
+                    self.firebaseUser = nil
+                    self.isLoggedIn = false
+                    self.profile = nil
+                    self.needsProfileSetup = false
+                    try? Auth.auth().signOut()
+                    return
+                }
+            }
             self.firebaseUser = user
             self.isLoggedIn = user != nil
             if let user {
@@ -85,6 +112,40 @@ class SessionStore: ObservableObject {
             return "That name is not allowed. Pick another one."
         }
         return nil
+    }
+
+    // MARK: - Remember me (launch)
+
+    /// The UserDefaults key for "Remember me". The LoginView and
+    /// RegisterView checkboxes write it via @AppStorage; the launch
+    /// decision below reads it, so all three share one stored value.
+    static let rememberMeDefaultsKey = "playmatch_remember_me"
+
+    /// The stored "Remember me" choice: false when the user never set
+    /// it (UserDefaults.bool returns false for a missing key). Takes
+    /// the defaults explicitly so tests can use an isolated suite.
+    static func storedRememberMe(defaults: UserDefaults = .standard) -> Bool {
+        defaults.bool(forKey: rememberMeDefaultsKey)
+    }
+
+    /// What the first auth-state fire at launch should do with a
+    /// restored session.
+    enum LaunchSessionDecision: Equatable {
+        /// A user was restored and asked to be remembered: stay signed in.
+        case keepSignedIn
+        /// A user was restored but did not ask to be remembered: sign
+        /// them out so the sign-in screen shows.
+        case signOutToLogin
+        /// No user was restored: the sign-in screen shows.
+        case showLogin
+    }
+
+    /// The launch decision, pure so it is unit-testable: whether a
+    /// restored session stays signed in depends only on whether a user
+    /// was restored and whether they asked to be remembered.
+    static func launchSessionDecision(restoredUserExists: Bool, rememberMe: Bool) -> LaunchSessionDecision {
+        if !restoredUserExists { return .showLogin }
+        return rememberMe ? .keepSignedIn : .signOutToLogin
     }
 
     // MARK: - Sign up

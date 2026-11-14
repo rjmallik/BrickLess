@@ -2,11 +2,11 @@ import SwiftUI
 import MapKit
 import CoreLocation
 
-/// "Find Games Near You": a map of basketball courts.
-/// Courts come from OpenStreetMap (free, global, but only what volunteers
-/// mapped) plus community courts added by players. Tap a pin to see the
-/// court and book it. Apple Maps (MapKit) is the map itself, so no
-/// Google Maps key or billing is needed for the map.
+/// "Find Games Near You": a map of courts and fields.
+/// Courts and fields come from OpenStreetMap (free, global, but only
+/// what volunteers mapped) plus community venues added by players.
+/// Tap a pin to see the venue and book it. Apple Maps (MapKit) is the
+/// map itself, so no Google Maps key or billing is needed for the map.
 struct CourtMapView: View {
     @ObservedObject var session: SessionStore
     @StateObject private var store = CourtStore()
@@ -16,10 +16,38 @@ struct CourtMapView: View {
                            span: MKCoordinateSpan(latitudeDelta: 0.08, longitudeDelta: 0.08)))
     @State private var selectedCourt: Court?
     @State private var showingAddCourt = false
+    /// Which sport tab is showing. All by default; a sport tab shows
+    /// only that sport's courts, plus multi-sport pitches.
+    @State private var selectedSport = SportTabs.allTag
 
-    // All launch sports show on the map; there is no sport filter yet.
     private var visibleCourts: [Court] {
-        store.courts
+        store.courts.filter { SportTabs.courtMatches($0, filter: selectedSport) }
+    }
+
+    /// Header for the selected sport: "All" shows every court and
+    /// field; a sport tab names the sport and its venue word
+    /// ("Basketball courts near you", "Soccer fields near you",
+    /// "Table Tennis tables near you").
+    private var headerTitle: String {
+        selectedSport == SportTabs.allTag
+            ? "Courts and fields near you"
+            : "\(SportTabs.label(forTag: selectedSport)) \(Court.venueWordPlural(forSport: selectedSport)) near you"
+    }
+
+    /// The Add button: the venue word for the selected sport, or the
+    /// generic "Add venue" on the All tab.
+    private var addButtonLabel: String {
+        selectedSport == SportTabs.allTag
+            ? "Add venue"
+            : "Add \(Court.venueWord(forSport: selectedSport))"
+    }
+
+    /// The loading line: the venue word for the selected sport, or the
+    /// generic "venues" on the All tab.
+    private var loadingText: String {
+        selectedSport == SportTabs.allTag
+            ? "Finding venues…"
+            : "Finding \(Court.venueWordPlural(forSport: selectedSport))…"
     }
 
     /// Pin icon and colour per sport. "figure.american.football" is an
@@ -78,10 +106,10 @@ struct CourtMapView: View {
             // the map falls back to downtown Seattle, and says so instead
             // of pretending those are the courts near you.
             VStack(spacing: 4) {
-                Text("Basketball courts near you")
+                Text(headerTitle)
                     .font(.subheadline.bold())
                 if locationManager.locationDenied && locationManager.location == nil {
-                    Text("Location off — showing downtown Seattle. Enable location in Settings to see courts near you.")
+                    Text("Location off — showing downtown Seattle. Enable location in Settings to see venues near you.")
                         .font(.caption)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
@@ -90,6 +118,8 @@ struct CourtMapView: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
+                SportTabBar(selected: $selectedSport)
+                    .padding(.top, 4)
             }
             .padding()
             .background(.ultraThinMaterial)
@@ -120,7 +150,7 @@ struct CourtMapView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button("Add court") { showingAddCourt = true }
+                Button(addButtonLabel) { showingAddCourt = true }
             }
         }
         .sheet(item: $selectedCourt) { court in
@@ -129,11 +159,12 @@ struct CourtMapView: View {
         .sheet(isPresented: $showingAddCourt) {
             AddCourtView(store: store, session: session,
                          coordinate: cameraPosition.region?.center
-                            ?? CLLocationCoordinate2D(latitude: 47.6062, longitude: -122.3321))
+                            ?? CLLocationCoordinate2D(latitude: 47.6062, longitude: -122.3321),
+                         initialSport: selectedSport)
         }
         .overlay {
             if store.isLoading {
-                ProgressView("Finding courts…").padding()
+                ProgressView(loadingText).padding()
                     .background(.ultraThinMaterial).cornerRadius(10)
             }
         }
@@ -159,7 +190,7 @@ private struct CourtDetailView: View {
             Text(court.source == "community" ? "Added by a player" : "From OpenStreetMap — hours and availability are not listed")
                 .font(.footnote).foregroundColor(.secondary)
 
-            Button("Book this court") { showingBooking = true }
+            Button("Book this \(Court.venueWord(forSport: court.sport))") { showingBooking = true }
                 .foregroundColor(.white).frame(maxWidth: .infinity).padding()
                 .background(Color.blue).cornerRadius(8)
             Button("Post a game here") { showingEvents = true }
@@ -185,28 +216,43 @@ private struct AddCourtView: View {
     var coordinate: CLLocationCoordinate2D
     @Environment(\.dismiss) private var dismiss
     @State private var name = ""
-    @State private var sport = "basketball"
+    /// The sport being added. Starts on the map's selected sport when
+    /// it is a real sport, else basketball; the picker can change it.
+    @State private var sport: String
     @State private var indoor = false
     @State private var errorMessage: String?
 
+    init(store: CourtStore, session: SessionStore, coordinate: CLLocationCoordinate2D,
+         initialSport: String = "basketball") {
+        self.store = store
+        self.session = session
+        self.coordinate = coordinate
+        _sport = State(initialValue: SportTabs.realSports.contains(initialSport)
+                       ? initialSport : "basketball")
+    }
+
     var body: some View {
         VStack(spacing: 12) {
-            Text("Add a missing court").font(.title2.bold())
+            Text("Add a missing \(Court.venueWord(forSport: sport))").font(.title2.bold())
             Text("Dropped at the centre of your map. Other players will see it.")
                 .font(.subheadline).foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
             TextField("Court or field name", text: $name)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
             Picker("Sport", selection: $sport) {
-                ForEach(CourtStore.launchSports, id: \.self) { tag in
-                    Text(Court.defaultName(forSport: tag)).tag(tag)
+                // Court.sport tags, not the OSM query tags: the stored
+                // sport must be a Court.sport value ("football", not
+                // "american_football") or the sport filter and the
+                // venue word will not recognise it.
+                ForEach(SportTabs.sports) { sport in
+                    Text(sport.label).tag(sport.tag)
                 }
             }
             .pickerStyle(.menu)
             .frame(maxWidth: .infinity, alignment: .leading)
             Toggle("Indoor", isOn: $indoor)
             if let errorMessage { Text(errorMessage).foregroundColor(.red) }
-            Button("Add court") {
+            Button("Add \(Court.venueWord(forSport: sport))") {
                 guard let uid = session.firebaseUser?.uid else { return }
                 let defaultName = Court.defaultName(forSport: sport)
                 store.addCommunityCourt(name: name.isEmpty ? defaultName : name,
@@ -224,8 +270,7 @@ private struct AddCourtView: View {
 }
 
 /// Minimal location helper: asks once, then reports the user location.
-/// Shared with the Recreational hub, which shows nearby courts, and
-/// with profile setup, which offers the location prompt at signup.
+/// Shared with profile setup, which offers the location prompt at signup.
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var location: CLLocationCoordinate2D?
     /// True when the user denied (or is restricted from) location access.

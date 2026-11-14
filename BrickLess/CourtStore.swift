@@ -54,6 +54,33 @@ struct Court: Codable, Identifiable, Hashable {
         }
     }
 
+    /// The venue word for a sport: what the place is called. Basketball,
+    /// tennis and pickleball are played on courts, soccer and American
+    /// football on fields, table tennis on a table, and a multi-sport
+    /// pitch is a pitch. "american_football" is the OSM tag form of
+    /// "football"; it can leak in from community courts added before
+    /// the Add Court picker stored Court.sport tags, and it is still a
+    /// field. Pure so it is unit-testable.
+    static func venueWord(forSport sport: String) -> String {
+        switch sport {
+        case "soccer", "football", "american_football": return "field"
+        case "table_tennis": return "table"
+        case "multi": return "pitch"
+        default: return "court"
+        }
+    }
+
+    /// The plural venue word: "courts", "fields", "tables", "pitches".
+    /// ("pitch" pluralises to "pitches", not "pitchs".)
+    static func venueWordPlural(forSport sport: String) -> String {
+        switch venueWord(forSport: sport) {
+        case "field": return "fields"
+        case "table": return "tables"
+        case "pitch": return "pitches"
+        default: return "courts"
+        }
+    }
+
     var coordinate: CLLocationCoordinate2D {
         CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
     }

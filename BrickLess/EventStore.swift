@@ -6,9 +6,13 @@ import FirebaseFirestoreSwift
 
 /// A pickup game posted at a court, stored in Firestore.
 ///
-/// `events/{id}`: { courtId, courtName, creatorUid, creatorUsername,
+/// `events/{id}`: { courtId, courtName, sport, creatorUid, creatorUsername,
 /// title, startTime, endTime, maxPlayers, playerUids, description,
 /// createdAt }.
+///
+/// `sport` is a Court.sport tag ("basketball", "soccer", "football",
+/// "tennis", "pickleball", "table_tennis"). It defaults to "basketball"
+/// so games posted before the field existed still decode.
 ///
 /// Events are NOT facility reservations: they do not block the court and
 /// overlapping events at the same court are fine. They exist so a group
@@ -18,6 +22,9 @@ struct GameEvent: Codable, Identifiable {
     @DocumentID var id: String?
     var courtId: String
     var courtName: String
+    /// The sport played, as a Court.sport tag. Defaults to basketball
+    /// so older event documents without the field still decode.
+    var sport: String = "basketball"
     var creatorUid: String
     var creatorUsername: String
     var title: String
@@ -127,6 +134,13 @@ class EventStore: ObservableObject {
     /// appears only in History, never in Upcoming or My games.
     static func pastEvents(_ events: [GameEvent], now: Date) -> [GameEvent] {
         events.filter { $0.endTime <= now }.sorted { $0.endTime > $1.endTime }
+    }
+
+    /// Joined games that have not ended, soonest first. Pure version
+    /// of the Chats tab's list: past games live in History (Events
+    /// tab), so the chat list only shows games still to play.
+    static func upcomingChats(_ events: [GameEvent], now: Date) -> [GameEvent] {
+        events.filter { $0.endTime > now }.sorted { $0.startTime < $1.startTime }
     }
 
     /// Max writes in one Firestore batch. Deleting a game's chat has
@@ -243,6 +257,7 @@ class EventStore: ObservableObject {
     /// creator is automatically the first player.
     func createEvent(court: Court?, courtName: String, title: String,
                      start: Date, end: Date, maxPlayers: Int, description: String,
+                     sport: String = "basketball",
                      creatorUsername: String, completion: @escaping (String?) -> Void) {
         guard let uid else {
             completion("You are not signed in.")
@@ -259,6 +274,7 @@ class EventStore: ObservableObject {
         let event = GameEvent(
             courtId: court?.id ?? "custom",
             courtName: courtName,
+            sport: sport,
             creatorUid: uid,
             creatorUsername: creatorUsername,
             title: title,

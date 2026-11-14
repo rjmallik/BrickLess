@@ -45,12 +45,14 @@ func makeEvent(
     maxPlayers: Int = 10,
     playerUids: [String] = ["creator-uid"],
     start: Date = testNow.addingTimeInterval(3600),
-    end: Date = testNow.addingTimeInterval(7200)
+    end: Date = testNow.addingTimeInterval(7200),
+    sport: String = "basketball"
 ) -> GameEvent {
     GameEvent(
         id: id,
         courtId: "court-1",
         courtName: "Cal Anderson Park",
+        sport: sport,
         creatorUid: "creator-uid",
         creatorUsername: "rjhoops",
         title: "Saturday run",

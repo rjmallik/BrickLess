@@ -45,6 +45,8 @@ struct RegisterView: View {
                 Text(errorMessage).foregroundColor(.red).padding(.horizontal)
             }
 
+            RememberMeCheckbox()
+
             if session.isLoading {
                 ProgressView().padding()
             } else {

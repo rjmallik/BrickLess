@@ -26,6 +26,8 @@ struct LoginView: View {
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .padding(.horizontal)
 
+            RememberMeCheckbox()
+
             if session.isLoading {
                 ProgressView()
                     .padding()
@@ -67,5 +69,30 @@ struct LoginView: View {
         } message: {
             Text(resetMessage ?? "We will email you a link to reset your password.")
         }
+    }
+}
+
+/// A "Remember me" checkbox, shared by the sign-in and sign-up
+/// screens. The choice is stored in UserDefaults (key
+/// SessionStore.rememberMeDefaultsKey) so it survives app restarts;
+/// SessionStore reads the same key at launch to decide whether a
+/// restored session stays signed in.
+struct RememberMeCheckbox: View {
+    @AppStorage(SessionStore.rememberMeDefaultsKey) private var rememberMe = false
+
+    var body: some View {
+        Button {
+            rememberMe.toggle()
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: rememberMe ? "checkmark.square.fill" : "square")
+                    .foregroundColor(rememberMe ? .blue : .secondary)
+                Text("Remember me")
+                    .foregroundColor(.primary)
+                Spacer()
+            }
+        }
+        .buttonStyle(.plain)
+        .padding(.horizontal)
     }
 }

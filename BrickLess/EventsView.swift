@@ -9,6 +9,15 @@ struct EventsView: View {
     @StateObject private var store = EventStore()
     @State private var showingCreate = false
     @State private var selectedList = GamesList.all
+    /// Which sport tab is showing. When opened from a court it starts
+    /// on that court's sport; otherwise it starts on All.
+    @State private var selectedSport: String
+
+    init(session: SessionStore, court: Court? = nil) {
+        self.session = session
+        self.court = court
+        _selectedSport = State(initialValue: SportTabs.filterForCourt(court))
+    }
 
     /// Which games list the picker shows. History is the signed-in
     /// user's own games that have ended — an ended game appears only
@@ -20,19 +29,21 @@ struct EventsView: View {
     }
 
     private var shownEvents: [GameEvent] {
+        let base: [GameEvent]
         switch selectedList {
         case .all:
-            store.upcomingEvents
+            base = store.upcomingEvents
         case .mine:
             // My games: joined events that have not ended yet — a game
             // in progress still shows here, so it never vanishes from
             // every list mid-game. Ended games are History only.
-            store.myEvents.filter { $0.endTime > Date() }
+            base = store.myEvents.filter { $0.endTime > Date() }
         case .history:
             // Finished games I created or joined, most recent first.
             // myEvents is already only my games (playerUids contains me).
-            EventStore.pastEvents(store.myEvents, now: Date())
+            base = EventStore.pastEvents(store.myEvents, now: Date())
         }
+        return base.filter { SportTabs.eventMatches($0, filter: selectedSport) }
     }
 
     private var emptyMessage: String {
@@ -48,6 +59,8 @@ struct EventsView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            SportTabBar(selected: $selectedSport)
+                .padding(.top, 8)
             Picker("Games", selection: $selectedList) {
                 ForEach(GamesList.allCases, id: \.self) { list in
                     Text(list.rawValue).tag(list)
@@ -69,6 +82,8 @@ struct EventsView: View {
                             Text("\(event.startTime.formatted(date: .abbreviated, time: .shortened)) – \(event.endTime.formatted(date: .omitted, time: .shortened))")
                                 .font(.subheadline).foregroundColor(.secondary)
                             Text("\(event.playerUids.count)/\(event.maxPlayers) players · Hosted by \(event.creatorUsername)")
+                                .font(.footnote).foregroundColor(.secondary)
+                            Text(SportTabs.label(forTag: event.sport))
                                 .font(.footnote).foregroundColor(.secondary)
                         }
                     }
@@ -107,9 +122,24 @@ struct CreateEventForm: View {
     @State private var end = Self.defaultEnd()
     @State private var maxPlayers = 10
     @State private var description = ""
+    /// The sport played. Defaults to the court's sport when the game
+    /// is posted from a court, else the signed-in user's primary
+    /// sport, else basketball; the picker lets the user change it.
+    @State private var sport: String
     @State private var errorMessage: String?
     @State private var created = false
     @Environment(\.dismiss) private var dismiss
+
+    init(store: EventStore, session: SessionStore, court: Court? = nil) {
+        self.store = store
+        self.session = session
+        self.court = court
+        let primary = session.profile.flatMap {
+            UserProfile.primarySportProfile(from: $0.sportProfiles)?.sport
+        }
+        _sport = State(initialValue: SportTabs.defaultSport(
+            court: court, primarySportDisplayName: primary))
+    }
 
     /// Tomorrow at 6pm, like the booking form's default.
     private static func defaultStart() -> Date {
@@ -136,6 +166,12 @@ struct CreateEventForm: View {
                     } else {
                         TextField("Court name", text: $courtName)
                     }
+                    Picker("Sport", selection: $sport) {
+                        ForEach(SportTabs.sports) { sport in
+                            Text(sport.label).tag(sport.tag)
+                        }
+                    }
+                    .pickerStyle(.menu)
                     TextField("Details (optional)", text: $description, axis: .vertical)
                 }
 
@@ -170,7 +206,7 @@ struct CreateEventForm: View {
                         store.isLoading = true
                         store.createEvent(court: court, courtName: courtName, title: title,
                                           start: start, end: end, maxPlayers: maxPlayers,
-                                          description: description,
+                                          description: description, sport: sport,
                                           creatorUsername: username) { error in
                             store.isLoading = false
                             if let error {
