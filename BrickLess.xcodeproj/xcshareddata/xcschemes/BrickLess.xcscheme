@@ -16,8 +16,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "910B08052BD6405300D4E602"
-               BuildableName = "BrickLess.app"
-               BlueprintName = "BrickLess"
+               BuildableName = "PlayMatch.app"
+               BlueprintName = "PlayMatch"
                ReferencedContainer = "container:BrickLess.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -71,8 +71,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "910B08052BD6405300D4E602"
-            BuildableName = "BrickLess.app"
-            BlueprintName = "BrickLess"
+            BuildableName = "PlayMatch.app"
+            BlueprintName = "PlayMatch"
             ReferencedContainer = "container:BrickLess.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -95,8 +95,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "910B08052BD6405300D4E602"
-            BuildableName = "BrickLess.app"
-            BlueprintName = "BrickLess"
+            BuildableName = "PlayMatch.app"
+            BlueprintName = "PlayMatch"
             ReferencedContainer = "container:BrickLess.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
