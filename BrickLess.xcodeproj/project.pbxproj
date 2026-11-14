@@ -60,7 +60,26 @@
 		91B10024F1A2000100C3D001 /* EventStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B10023F1A2000100C3D001 /* EventStore.swift */; };
 		91B10026F1A2000100C3D001 /* EventsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B10025F1A2000100C3D001 /* EventsView.swift */; };
 		91B10028F1A2000100C3D001 /* EventDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B10027F1A2000100C3D001 /* EventDetailView.swift */; };
+		9BFFB67D8AECDC9275EBB853 /* BookingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9C79BAAA898A534FF2558EC /* BookingTests.swift */; };
+		EB626D8F61B9E542FFF0BBA2 /* ChatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AA2E5A6893D4D5D3E380F72 /* ChatTests.swift */; };
+		A4FC153A53780FC8E5EAF78E /* CourtTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9CC7F8E3A3379E571796F87 /* CourtTests.swift */; };
+		0E969DB0BDE74E6A14B4067D /* EventTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8867DBCF971D9C6DD212E1EF /* EventTests.swift */; };
+		4755038AEEC7F1BE8394F095 /* FriendsAndPlayersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A59CC56B946E54D18372B661 /* FriendsAndPlayersTests.swift */; };
+		0565BC340C7C91ADFDD64D82 /* SignupValidationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4882628EE133C10B6511907F /* SignupValidationTests.swift */; };
+		C206159DAF9695B1C892C9EF /* TestHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17DC514EFAE58F30E8CA9ACE /* TestHelpers.swift */; };
+		C1725D8A458D5153FFDAC3CF /* UserProfileTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81D0AF263E0B94EDBF2637BC /* UserProfileTests.swift */; };
+		1A78F85F1578F6B102A14372 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 9121B81D2BD88B3C002F5793 /* FirebaseAuth */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		456473C13B2E66F8031D39A4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 910B07FE2BD6405300D4E602 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 910B08052BD6405300D4E602;
+			remoteInfo = BrickLess;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		910B08062BD6405300D4E602 /* BrickLess.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BrickLess.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -90,6 +109,15 @@
 		91B10023F1A2000100C3D001 /* EventStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventStore.swift; sourceTree = "<group>"; };
 		91B10025F1A2000100C3D001 /* EventsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventsView.swift; sourceTree = "<group>"; };
 		91B10027F1A2000100C3D001 /* EventDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventDetailView.swift; sourceTree = "<group>"; };
+		D9C79BAAA898A534FF2558EC /* BookingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookingTests.swift; sourceTree = "<group>"; };
+		4AA2E5A6893D4D5D3E380F72 /* ChatTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatTests.swift; sourceTree = "<group>"; };
+		E9CC7F8E3A3379E571796F87 /* CourtTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourtTests.swift; sourceTree = "<group>"; };
+		8867DBCF971D9C6DD212E1EF /* EventTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventTests.swift; sourceTree = "<group>"; };
+		A59CC56B946E54D18372B661 /* FriendsAndPlayersTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsAndPlayersTests.swift; sourceTree = "<group>"; };
+		4882628EE133C10B6511907F /* SignupValidationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignupValidationTests.swift; sourceTree = "<group>"; };
+		17DC514EFAE58F30E8CA9ACE /* TestHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestHelpers.swift; sourceTree = "<group>"; };
+		81D0AF263E0B94EDBF2637BC /* UserProfileTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfileTests.swift; sourceTree = "<group>"; };
+		5961ADB46AF2E7167C060598 /* BrickLessTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BrickLessTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -127,6 +155,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		FBB7E57C53FB91C95EE8626A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1A78F85F1578F6B102A14372 /* FirebaseAuth in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -134,6 +170,7 @@
 			isa = PBXGroup;
 			children = (
 				910B08082BD6405300D4E602 /* BrickLess */,
+				2915F53DE39E9FFA28C2E0B8 /* BrickLessTests */,
 				910B08072BD6405300D4E602 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -142,6 +179,7 @@
 			isa = PBXGroup;
 			children = (
 				910B08062BD6405300D4E602 /* BrickLess.app */,
+				5961ADB46AF2E7167C060598 /* BrickLessTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -185,6 +223,21 @@
 				910B08102BD6405400D4E602 /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		2915F53DE39E9FFA28C2E0B8 /* BrickLessTests */ = {
+			isa = PBXGroup;
+			children = (
+				D9C79BAAA898A534FF2558EC /* BookingTests.swift */,
+				4AA2E5A6893D4D5D3E380F72 /* ChatTests.swift */,
+				E9CC7F8E3A3379E571796F87 /* CourtTests.swift */,
+				8867DBCF971D9C6DD212E1EF /* EventTests.swift */,
+				A59CC56B946E54D18372B661 /* FriendsAndPlayersTests.swift */,
+				4882628EE133C10B6511907F /* SignupValidationTests.swift */,
+				17DC514EFAE58F30E8CA9ACE /* TestHelpers.swift */,
+				81D0AF263E0B94EDBF2637BC /* UserProfileTests.swift */,
+			);
+			path = BrickLessTests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -236,6 +289,27 @@
 			productReference = 910B08062BD6405300D4E602 /* BrickLess.app */;
 			productType = "com.apple.product-type.application";
 		};
+		EDB2656AD8032E7ABC98215C /* BrickLessTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 934AC99A4D9773EBF80E6450 /* Build configuration list for PBXNativeTarget "BrickLessTests" */;
+			buildPhases = (
+				BF9B9226C950C69A7F8065E1 /* Sources */,
+				FBB7E57C53FB91C95EE8626A /* Frameworks */,
+				1BD64CB524B033B2F1D4DB03 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				225DC69407EF9D0F9EC9D562 /* PBXTargetDependency */,
+			);
+			name = BrickLessTests;
+			packageProductDependencies = (
+				9121B81D2BD88B3C002F5793 /* FirebaseAuth */,
+			);
+			productName = BrickLessTests;
+			productReference = 5961ADB46AF2E7167C060598 /* BrickLessTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -247,6 +321,12 @@
 				LastUpgradeCheck = 1530;
 				TargetAttributes = {
 					910B08052BD6405300D4E602 = {
+						CreatedOnToolsVersion = 15.3;
+					};
+					910B08052BD6405300D4E602 = {
+						CreatedOnToolsVersion = 15.3;
+					};
+					EDB2656AD8032E7ABC98215C = {
 						CreatedOnToolsVersion = 15.3;
 					};
 				};
@@ -269,6 +349,10 @@
 			targets = (
 				910B08052BD6405300D4E602 /* BrickLess */,
 			);
+			targets = (
+				910B08052BD6405300D4E602 /* BrickLess */,
+				EDB2656AD8032E7ABC98215C /* BrickLessTests */,
+			);
 		};
 /* End PBXProject section */
 
@@ -280,6 +364,13 @@
 				910B08112BD6405400D4E602 /* Preview Assets.xcassets in Resources */,
 				910B080E2BD6405400D4E602 /* Assets.xcassets in Resources */,
 				9121B84A2BD88E81002F5793 /* GoogleService-Info.plist in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1BD64CB524B033B2F1D4DB03 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -316,7 +407,30 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		BF9B9226C950C69A7F8065E1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9BFFB67D8AECDC9275EBB853 /* BookingTests.swift in Sources */,
+				EB626D8F61B9E542FFF0BBA2 /* ChatTests.swift in Sources */,
+				A4FC153A53780FC8E5EAF78E /* CourtTests.swift in Sources */,
+				0E969DB0BDE74E6A14B4067D /* EventTests.swift in Sources */,
+				4755038AEEC7F1BE8394F095 /* FriendsAndPlayersTests.swift in Sources */,
+				0565BC340C7C91ADFDD64D82 /* SignupValidationTests.swift in Sources */,
+				C206159DAF9695B1C892C9EF /* TestHelpers.swift in Sources */,
+				C1725D8A458D5153FFDAC3CF /* UserProfileTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		225DC69407EF9D0F9EC9D562 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 910B08052BD6405300D4E602 /* BrickLess */;
+			targetProxy = 456473C13B2E66F8031D39A4 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		910B08172BD6405400D4E602 /* Debug */ = {
@@ -496,6 +610,52 @@
 			};
 			name = Release;
 		};
+		C507AC520CB7CC835C1B2D80 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = rjmallik.BrickLessTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BrickLess.app/BrickLess";
+			};
+			name = Debug;
+		};
+		6C94D5BCD9E2FB0ABEEBF2FD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = rjmallik.BrickLessTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BrickLess.app/BrickLess";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -513,6 +673,15 @@
 			buildConfigurations = (
 				910B081A2BD6405400D4E602 /* Debug */,
 				910B081B2BD6405400D4E602 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		934AC99A4D9773EBF80E6450 /* Build configuration list for PBXNativeTarget "BrickLessTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C507AC520CB7CC835C1B2D80 /* Debug */,
+				6C94D5BCD9E2FB0ABEEBF2FD /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
