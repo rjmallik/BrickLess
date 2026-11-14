@@ -8,6 +8,13 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# Serialize runs: two pushes close together used to race, and the first run's
+# build-report push got rejected (non-fast-forward) even though its build
+# passed. Queued runs wait their turn instead.
+concurrency:
+  group: mac-build
+  cancel-in-progress: false
+
 permissions:
   contents: write
 
@@ -25,6 +32,13 @@ jobs:
           set -o pipefail
           xcodebuild -project BrickLess.xcodeproj -scheme BrickLess -destination 'generic/platform=iOS Simulator' build 2>&1 | tee build.log
 
+      - name: Test (simulator)
+        id: test
+        if: steps.build.outcome == 'success'
+        run: |
+          set -o pipefail
+          xcodebuild test -project BrickLess.xcodeproj -scheme BrickLess -destination 'platform=iOS Simulator,name=iPhone 17' 2>&1 | tee test.log
+
       - name: Write build report
         if: always()
         run: |
@@ -35,10 +49,16 @@ jobs:
             echo "- Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
             echo "- Date: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
             echo "- Build: ${{ steps.build.outcome }}"
+            echo "- Tests: ${{ steps.test.outcome }}"
             echo
             echo "## Build log (tail)"
             echo '```'
             tail -40 build.log 2>/dev/null || echo "(no build log)"
+            echo '```'
+            echo
+            echo "## Test log (tail)"
+            echo '```'
+            tail -40 test.log 2>/dev/null || echo "(no test log)"
             echo '```'
           } > build-report.md
 
