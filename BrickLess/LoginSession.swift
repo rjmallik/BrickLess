@@ -187,7 +187,7 @@ class SessionStore: ObservableObject {
                 guard let self else { return }
                 guard let email = snapshot?.data()?["email"] as? String else {
                     self.isLoading = false
-                    self.loginError = "No account with that username."
+                    self.loginError = "Username or password not recognized."
                     return
                 }
                 self.signInWithEmail(email, password: password)
@@ -749,8 +749,8 @@ class SessionStore: ObservableObject {
         case .invalidEmail: return "That email address does not look right."
         case .emailAlreadyInUse: return "An account already exists for that email."
         case .weakPassword: return "Password must be at least 6 characters."
-        case .wrongPassword, .invalidCredential: return "Incorrect email or password."
-        case .userNotFound: return "No account with that email."
+        case .wrongPassword, .invalidCredential: return "Username or password not recognized."
+        case .userNotFound: return "Username or password not recognized."
         case .userDisabled: return "That account has been disabled."
         case .tooManyRequests: return "Too many attempts. Try again later."
         case .networkError: return "No connection. Check your network and try again."

@@ -33,11 +33,12 @@ service cloud.firestore {
       allow delete: if isOwner(uid);
     }
 
-    // Username reservations: anyone signed in can read (for login-by-username
-    // and availability checks). A user can only claim a name for themself,
-    // and only when that name is not already taken.
+    // Username reservations: anyone can read a name's mapping, because
+    // login-by-username has to resolve the name to an email BEFORE the
+    // user is signed in. Reads were sign-in-only, which made username
+    // login fail with "no account" for every real account.
     match /usernames/{name} {
-      allow read: if signedIn();
+      allow read: if true;
       allow create: if signedIn()
         && request.resource.data.uid == request.auth.uid
         && !exists(/databases/$(database)/documents/usernames/$(name));
