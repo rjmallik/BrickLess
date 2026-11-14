@@ -1,8 +1,8 @@
 # BrickLess build report
 
-- Commit: 9ed7eee83e45fc0ef1fbaa5d3836e5bd4b247462
-- Run: https://github.com/rjmallik/BrickLess/actions/runs/43555130063
-- Date: 2026-11-14T04:16:48Z
+- Commit: 2afc121bb843c6e416bcbaea967fc632673ce730
+- Run: https://github.com/rjmallik/PlayMatch/actions/runs/43557794920
+- Date: 2026-11-14T04:44:20Z
 - Build: failure
 - Tests: skipped
 
@@ -10,35 +10,35 @@
 ```
     
 
-SwiftCompile normal x86_64 /Users/runner/work/BrickLess/BrickLess/BrickLess/LoadingScreenUI.swift (in target 'PlayMatch' from project 'BrickLess')
-    cd /Users/runner/work/BrickLess/BrickLess
+SwiftCompile normal x86_64 /Users/runner/work/PlayMatch/PlayMatch/BrickLess/EventsView.swift (in target 'PlayMatch' from project 'BrickLess')
+    cd /Users/runner/work/PlayMatch/PlayMatch
     
 
-SwiftCompile normal x86_64 /Users/runner/work/BrickLess/BrickLess/BrickLess/UserProfile.swift (in target 'PlayMatch' from project 'BrickLess')
-    cd /Users/runner/work/BrickLess/BrickLess
+SwiftCompile normal x86_64 /Users/runner/work/PlayMatch/PlayMatch/BrickLess/EventDetailView.swift (in target 'PlayMatch' from project 'BrickLess')
+    cd /Users/runner/work/PlayMatch/PlayMatch
     
 
-SwiftCompile normal x86_64 /Users/runner/work/BrickLess/BrickLess/BrickLess/ProfileSetupView.swift (in target 'PlayMatch' from project 'BrickLess')
-    cd /Users/runner/work/BrickLess/BrickLess
+SwiftCompile normal x86_64 /Users/runner/work/PlayMatch/PlayMatch/BrickLess/RememberedCredentials.swift (in target 'PlayMatch' from project 'BrickLess')
+    cd /Users/runner/work/PlayMatch/PlayMatch
     
 
-SwiftCompile normal x86_64 /Users/runner/work/BrickLess/BrickLess/BrickLess/ProfileView.swift (in target 'PlayMatch' from project 'BrickLess')
-    cd /Users/runner/work/BrickLess/BrickLess
+SwiftCompile normal x86_64 /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-celrmpaezphlteaxkyazfzkfesbk/Build/Intermediates.noindex/BrickLess.build/Debug-iphonesimulator/PlayMatch.build/DerivedSources/CoreDataGenerated/BrickLess/Item+CoreDataClass.swift (in target 'PlayMatch' from project 'BrickLess')
+    cd /Users/runner/work/PlayMatch/PlayMatch
     
 
-CreateUniversalBinary /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Products/Debug-iphonesimulator/FirebaseAnalyticsSwift.o normal arm64\ x86_64 (in target 'FirebaseAnalyticsSwift' from project 'Firebase')
-    cd /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/SourcePackages/checkouts/firebase-ios-sdk
-    /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/lipo -create /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Intermediates.noindex/Firebase.build/Debug-iphonesimulator/FirebaseAnalyticsSwift.build/Objects-normal/arm64/Binary/FirebaseAnalyticsSwift.o /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Intermediates.noindex/Firebase.build/Debug-iphonesimulator/FirebaseAnalyticsSwift.build/Objects-normal/x86_64/Binary/FirebaseAnalyticsSwift.o -output /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Products/Debug-iphonesimulator/FirebaseAnalyticsSwift.o
+SwiftCompile normal x86_64 /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-celrmpaezphlteaxkyazfzkfesbk/Build/Intermediates.noindex/BrickLess.build/Debug-iphonesimulator/PlayMatch.build/DerivedSources/CoreDataGenerated/BrickLess/Item+CoreDataProperties.swift (in target 'PlayMatch' from project 'BrickLess')
+    cd /Users/runner/work/PlayMatch/PlayMatch
+    
 
-SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/SwiftUI-21HO5GXGWMPI9BSAIULZAIM08.pcm
+SwiftCompile normal x86_64 /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-celrmpaezphlteaxkyazfzkfesbk/Build/Intermediates.noindex/BrickLess.build/Debug-iphonesimulator/PlayMatch.build/DerivedSources/CoreDataGenerated/BrickLess/BrickLess+CoreDataModel.swift (in target 'PlayMatch' from project 'BrickLess')
+    cd /Users/runner/work/PlayMatch/PlayMatch
+    
 
-SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules/FirebaseFirestoreInternal-EVX3YTC8ZLOVG6LOZ7C9LF4TS.pcm
+SwiftCompile normal x86_64 /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-celrmpaezphlteaxkyazfzkfesbk/Build/Intermediates.noindex/BrickLess.build/Debug-iphonesimulator/PlayMatch.build/DerivedSources/GeneratedAssetSymbols.swift (in target 'PlayMatch' from project 'BrickLess')
+    cd /Users/runner/work/PlayMatch/PlayMatch
+    
 
-SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules/GTMSessionFetcherCore-4Y6Z53Z3YZ0ZHGXNNYFGJMYVY.pcm
-
-SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/BrickLess-flmbbyuxtrgebbbganefizynaavw/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules/FirebaseAnalytics-BZZNILR5B1M1URNZLI946IUOY.pcm
-
-SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/PhotosUI-CUXW3PBA1A7NL8V4FSUB5GXBV.pcm
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/MediaToolbox-PHW0Q1QIN1GMSG4K87OJRC6C.pcm
 
 ** BUILD FAILED **
 
