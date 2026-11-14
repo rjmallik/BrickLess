@@ -333,7 +333,8 @@ class SessionStore: ObservableObject {
         batch.commit { [weak self] _ in
             // Firestore cleanup is best effort; the Auth delete is the point.
             guard let self else { return }
-            self.deleteAccountCleanup(uid: uid) {
+            self.deleteAccountCleanup(uid: uid) { [weak self] in
+                guard let self else { return }
                 user.delete { [weak self] error in
                     guard let self else { return }
                     self.isLoading = false

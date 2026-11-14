@@ -233,7 +233,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var locationDenied = false
     /// Current authorization, so views can show the right state without
     /// asking again. Updated whenever iOS reports a change.
-    @Published var authorizationStatus: CLAuthorizationStatus
+    @Published var authorizationStatus: CLAuthorizationStatus = .notDetermined
     private let manager = CLLocationManager()
 
     override init() {
