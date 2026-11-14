@@ -268,7 +268,7 @@ class SessionStore: ObservableObject {
     /// duplicate tap while one is already in flight (which reports
     /// failure without starting a second request or clearing the
     /// in-flight attempt's error).
-    func signIn(email: String, password: String, completion: (@escaping (Bool) -> Void)? = nil) {
+    func signIn(email: String, password: String, completion: ((Bool) -> Void)? = nil) {
         if let error = Self.signInValidationError(email: email, password: password) {
             loginError = error
             completion?(false)
@@ -307,7 +307,7 @@ class SessionStore: ObservableObject {
                               store: credentialStore)
     }
 
-    private func signInWithEmail(_ email: String, password: String, completion: (@escaping (Bool) -> Void)? = nil) {
+    private func signInWithEmail(_ email: String, password: String, completion: ((Bool) -> Void)? = nil) {
         Auth.auth().signIn(withEmail: email, password: password) { [weak self] _, error in
             guard let self else { return }
             // Deliver the result on the main queue: the error message
