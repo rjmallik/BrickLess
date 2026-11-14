@@ -62,10 +62,50 @@ jobs:
             echo '```'
           } > build-report.md
 
+      # The log tails above almost never contain the actual error: the
+      # failing Swift file compiles long before the tail, so the report
+      # says "BUILD FAILED at EmitSwiftModule" with no error text.
+      # This step greps the full logs for the error lines and appends
+      # them to the report, so the next failure names the file, line
+      # and message instead of just the failing build command.
+      - name: Error lines
+        if: always()
+        run: |
+          {
+            echo
+            echo "## Build errors"
+            echo '```'
+            if [ -f build.log ]; then
+              grep "error:" build.log | head -100 || true
+            else
+              echo "(no build log)"
+            fi
+            echo '```'
+            echo
+            echo "## Test errors"
+            echo '```'
+            if [ -f test.log ]; then
+              grep -E "error:|Test Case .* failed" test.log | head -100 || true
+            else
+              echo "(no test log)"
+            fi
+            echo '```'
+          } >> build-report.md
+
       - name: Commit report
         if: always()
         run: |
           git config user.name "brickless-ci"
           git config user.email "brickless-ci@users.noreply.github.com"
           git add build-report.md
-          git diff --cached --quiet || git commit -m "Build report for ${GITHUB_SHA:0:7}" && git push
+          git diff --cached --quiet && exit 0
+          git commit -m "Build report for ${GITHUB_SHA:0:7}"
+          # If a newer commit landed on main while this run was building,
+          # skip the report: the newer run will publish its own, and pushing
+          # from an old checkout would be rejected (non-fast-forward).
+          git fetch origin main
+          if [ "$(git rev-parse origin/main)" != "$GITHUB_SHA" ]; then
+            echo "Main has moved on to a newer commit; skipping this report."
+            exit 0
+          fi
+          git push origin HEAD:main || echo "Report push raced with a newer run; skipping."
