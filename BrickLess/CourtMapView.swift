@@ -11,6 +11,24 @@ struct CourtMapView: View {
     @ObservedObject var session: SessionStore
     @StateObject private var store = CourtStore()
     @StateObject private var locationManager = LocationManager()
+    /// Geocodes the profile city (cached per city string) so the map
+    /// can centre on it. The profile city is the player's preferred /
+    /// home location; the map follows it when one is set.
+    @StateObject private var cityGeocoder = CityGeocoder()
+    /// The geocoded coordinate of the profile city the map is
+    /// currently centred on, if any.
+    @State private var profileCityCoordinate: CLLocationCoordinate2D?
+    /// The city string profileCityCoordinate was geocoded from, so a
+    /// city is only geocoded once.
+    @State private var lastCenteredCity: String?
+    /// The re-centre button was tapped: the next GPS fix jumps the
+    /// map to the live location even when a profile city is set.
+    @State private var recenterRequested = false
+    /// The away-banner dismissal key (profile city + coarse GPS area)
+    /// the player last dismissed with the X. The banner stays hidden
+    /// for that city-and-area, and re-arms when the city changes or
+    /// the player moves to a new area.
+    @State private var awayBannerDismissedFor: String?
     @State private var cameraPosition = MapCameraPosition.region(
         MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: 47.6062, longitude: -122.3321),
                            span: MKCoordinateSpan(latitudeDelta: 0.08, longitudeDelta: 0.08)))
@@ -42,12 +60,62 @@ struct CourtMapView: View {
             : "Add \(Court.venueWord(forSport: selectedSport))"
     }
 
-    /// The loading line: the venue word for the selected sport, or the
-    /// generic "venues" on the All tab.
-    private var loadingText: String {
-        selectedSport == SportTabs.allTag
-            ? "Finding venues…"
-            : "Finding \(Court.venueWordPlural(forSport: selectedSport))…"
+    /// Whether the "away from home" banner shows: the player has a
+    /// profile city (geocoded) and a live GPS fix, the fix is farther
+    /// than the away threshold from the profile city, and the player
+    /// has not dismissed it for this city-and-area with the X.
+    /// The banner is only a notice — it never moves the map.
+    private var showAwayBanner: Bool {
+        guard let cityCoord = profileCityCoordinate,
+              let gps = locationManager.location,
+              let city = session.profile?.city,
+              !city.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return false }
+        guard CityGeocoder.distanceMeters(from: cityCoord, to: gps)
+                > CityGeocoder.awayThresholdMeters else { return false }
+        return awayBannerDismissedFor != CityGeocoder.awayBannerKey(city: city, gps: gps)
+    }
+
+    /// Center the map and fetch venues: the profile city wins when
+    /// set (geocoded, cached); otherwise the current centre (GPS fix
+    /// when one arrives, else the Seattle default).
+    private func refreshCenter() {
+        if CityGeocoder.centerChoice(profileCity: session.profile?.city,
+                                     hasGPSFix: locationManager.location != nil) == .profileCity {
+            centerOnProfileCityIfNeeded()
+        } else {
+            store.fetchCourts(around: cameraPosition.region?.center
+                ?? CLLocationCoordinate2D(latitude: 47.6062, longitude: -122.3321))
+        }
+    }
+
+    /// Centre the map on the signed-in player's profile city when one
+    /// is set. The profile city wins over the GPS fix: that is the
+    /// point — a player who sets their city sees venues there even
+    /// when the device GPS is somewhere else (e.g. the simulator's
+    /// fake Cupertino fix). No city set means the current behaviour
+    /// (GPS fix when available, else the Seattle default).
+    private func centerOnProfileCityIfNeeded() {
+        guard let rawCity = session.profile?.city,
+              !rawCity.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            // No profile city: clear any profile-city centre so the
+            // GPS fix (or the Seattle default) takes over again.
+            profileCityCoordinate = nil
+            lastCenteredCity = nil
+            return
+        }
+        let key = CityGeocoder.normalizedCity(rawCity)
+        guard key != lastCenteredCity else { return }
+        cityGeocoder.coordinate(for: rawCity) { coordinate in
+            // The city may have changed while geocoding; only apply a
+            // result that still matches the current profile city.
+            guard CityGeocoder.normalizedCity(session.profile?.city ?? "") == key else { return }
+            guard let coordinate else { return } // geocode failed: stay put
+            profileCityCoordinate = coordinate
+            lastCenteredCity = key
+            cameraPosition = .region(MKCoordinateRegion(
+                center: coordinate, span: MKCoordinateSpan(latitudeDelta: 0.08, longitudeDelta: 0.08)))
+            store.fetchCourts(around: coordinate)
+        }
     }
 
     var body: some View {
@@ -67,24 +135,52 @@ struct CourtMapView: View {
                     }
                     .tag(court)
                 }
+                // The player's own location, made unmistakable: the
+                // native blue user-location dot, plus a "You are here"
+                // label floating above it, so the player can always
+                // tell where they are on the map — even when the map
+                // is centred on their profile city rather than on GPS.
+                UserAnnotation()
                 if let location = locationManager.location {
-                    Annotation("You", coordinate: location) {
-                        Circle().fill(Color.blue).frame(width: 16, height: 16)
-                            .overlay(Circle().stroke(Color.white, lineWidth: 2))
+                    Annotation("You are here", coordinate: location) {
+                        Text("You are here")
+                            .font(.caption.bold())
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .background(Color.blue)
+                            .foregroundColor(.white)
+                            .clipShape(Capsule())
+                            .shadow(radius: 3)
+                            .offset(y: -30)
                     }
                 }
             }
             .mapStyle(.standard)
             .onAppear {
                 locationManager.requestPermission()
-                store.fetchCourts(around: cameraPosition.region?.center
-                    ?? CLLocationCoordinate2D(latitude: 47.6062, longitude: -122.3321))
+                refreshCenter()
+            }
+            .onChange(of: session.profile?.city) {
+                // The profile city was saved or changed (including the
+                // first load after sign-in): re-centre the map on it.
+                refreshCenter()
             }
             .onReceive(locationManager.$location) { location in
                 // onChange can't watch CLLocationCoordinate2D: it is not
                 // Equatable. onReceive on the @Published value needs no
                 // Equatable conformance.
                 guard let location else { return }
+                // A profile city drives the map when one is set, so a
+                // GPS fix must not yank the centre away (the
+                // simulator's fake fix would win otherwise). The
+                // re-centre button is the exception: an explicit tap
+                // always jumps to the live GPS fix.
+                if !recenterRequested,
+                   CityGeocoder.centerChoice(profileCity: session.profile?.city,
+                                             hasGPSFix: true) == .profileCity {
+                    return
+                }
+                recenterRequested = false
                 cameraPosition = .region(MKCoordinateRegion(
                     center: location, span: MKCoordinateSpan(latitudeDelta: 0.08, longitudeDelta: 0.08)))
                 store.fetchCourts(around: location)
@@ -93,25 +189,60 @@ struct CourtMapView: View {
             // Header: what the map is centred on. When location is off
             // the map falls back to downtown Seattle, and says so instead
             // of pretending those are the courts near you.
-            VStack(spacing: 4) {
-                Text(headerTitle)
-                    .font(.subheadline.bold())
-                if locationManager.locationDenied && locationManager.location == nil {
-                    Text("Location off — showing downtown Seattle. Enable location in Settings to see venues near you.")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .multilineTextAlignment(.center)
-                } else if locationManager.location == nil {
-                    Text("Finding your location…")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+            VStack(spacing: 8) {
+                VStack(spacing: 4) {
+                    Text(headerTitle)
+                        .font(.subheadline.bold())
+                    if locationManager.locationDenied && locationManager.location == nil {
+                        Text("Location off — showing downtown Seattle. Enable location in Settings to see venues near you.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                    } else if locationManager.location == nil {
+                        Text("Finding your location…")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    SportTabBar(selected: $selectedSport)
+                        .padding(.top, 4)
                 }
-                SportTabBar(selected: $selectedSport)
-                    .padding(.top, 4)
+                .padding()
+                .background(.ultraThinMaterial)
+                .cornerRadius(10)
+
+                // Away from home: the player's live GPS is far from
+                // their profile city (the preferred/home location).
+                // Just a notice — it never moves the map. The X on
+                // the right dismisses it; dismissing means keep
+                // looking around here (the profile city).
+                if showAwayBanner, let city = session.profile?.city {
+                    HStack(spacing: 8) {
+                        Image(systemName: "mappin.and.ellipse")
+                            .foregroundColor(PlayMatchColors.brand)
+                        Text("You're away from \(city). Still looking around here?")
+                            .font(.subheadline)
+                        Spacer()
+                        Button {
+                            if let gps = locationManager.location {
+                                awayBannerDismissedFor = CityGeocoder.awayBannerKey(city: city, gps: gps)
+                            }
+                        } label: {
+                            Image(systemName: "xmark")
+                                .font(.body.bold())
+                                .foregroundColor(.secondary)
+                                .padding(8)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Dismiss")
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .background(Color(.systemBackground))
+                    .cornerRadius(10)
+                    .shadow(radius: 2)
+                }
             }
-            .padding()
-            .background(.ultraThinMaterial)
-            .cornerRadius(10)
             .padding()
 
             // Re-centre on the user after panning away: one fresh fix,
@@ -122,6 +253,7 @@ struct CourtMapView: View {
                     Spacer()
                     if locationManager.location != nil {
                         Button {
+                            recenterRequested = true
                             locationManager.requestLocation()
                         } label: {
                             Image(systemName: "location.fill")
@@ -152,9 +284,140 @@ struct CourtMapView: View {
         }
         .overlay {
             if store.isLoading {
-                ProgressView(loadingText).padding()
-                    .background(.ultraThinMaterial).cornerRadius(10)
+                SportyLoadingView()
             }
+        }
+    }
+}
+
+/// The venue loading cycle: which sports ball shows, and whether
+/// the line reads "Finding…" or "Loading…", at each second of a
+/// venue fetch. Pure so it is unit-testable.
+enum VenueLoadingCycle {
+    /// The sports whose ball icons cycle while loading, in order.
+    static let tags = ["basketball", "soccer", "football", "tennis",
+                       "pickleball", "table_tennis", "golf"]
+
+    /// The sport tag whose ball icon shows at a cycle step.
+    static func tag(at index: Int) -> String {
+        tags[index % tags.count]
+    }
+
+    /// The loading line at a cycle step: "Finding…" on even steps,
+    /// "Loading…" on odd steps.
+    static func text(at index: Int) -> String {
+        index.isMultiple(of: 2) ? "Finding…" : "Loading…"
+    }
+}
+
+/// Playful venue loading state: the text alternates between
+/// "Finding…" and "Loading…" and a sports ball spins, cycling
+/// through the sports once a second, so a slow venue fetch still
+/// feels alive. Shown while the court store is loading.
+private struct SportyLoadingView: View {
+    @State private var index = 0
+    @State private var rotation: Double = 0
+
+    private var style: (symbol: String, color: Color) {
+        SportTabs.pinStyle(forTag: VenueLoadingCycle.tag(at: index))
+    }
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: style.symbol)
+                .font(.title2)
+                .foregroundColor(style.color)
+                .rotationEffect(.degrees(rotation))
+                .onAppear {
+                    withAnimation(.linear(duration: 1).repeatForever(autoreverses: false)) {
+                        rotation = 360
+                    }
+                }
+            Text(VenueLoadingCycle.text(at: index))
+                .font(.subheadline.bold())
+        }
+        .padding()
+        .background(.ultraThinMaterial)
+        .cornerRadius(10)
+        .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { _ in
+            index += 1
+        }
+    }
+}
+
+/// Which centre the map should use. Pure so it is unit-testable.
+enum MapCenterChoice: Equatable {
+    /// The profile city (geocoded) — the player's preferred/home location.
+    case profileCity
+    /// The live GPS fix.
+    case gps
+    /// The Seattle fallback (no city, no fix).
+    case seattle
+}
+
+/// Geocodes a profile city to a coordinate, caching results per city
+/// string so the map does not re-geocode on every appearance.
+/// CLGeocoder is rate-limited, so one lookup per distinct city.
+final class CityGeocoder: ObservableObject {
+    /// "Away" means the live GPS fix is farther than this from the
+    /// geocoded profile city. Matches the venue search radius (25 km).
+    static let awayThresholdMeters: Double = 25_000
+
+    private var cache: [String: CLLocationCoordinate2D] = [:]
+    private let geocoder = CLGeocoder()
+
+    /// Cache key for a city string: trimmed and lowercased, so
+    /// "Seattle" and "seattle " share one lookup. Pure.
+    static func normalizedCity(_ city: String) -> String {
+        city.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+    }
+
+    /// Which centre the map should use, given the profile city and
+    /// whether a GPS fix exists. The profile city wins when set
+    /// (that is the point: the map follows the city the player
+    /// chose); GPS is next; Seattle is the fallback. Pure.
+    static func centerChoice(profileCity: String?, hasGPSFix: Bool) -> MapCenterChoice {
+        if let city = profileCity, !city.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return .profileCity
+        }
+        return hasGPSFix ? .gps : .seattle
+    }
+
+    /// Straight-line distance between two coordinates, in metres. Pure.
+    static func distanceMeters(from a: CLLocationCoordinate2D, to b: CLLocationCoordinate2D) -> Double {
+        CLLocation(latitude: a.latitude, longitude: a.longitude)
+            .distance(from: CLLocation(latitude: b.latitude, longitude: b.longitude))
+    }
+
+    /// The dismissal key for the away banner: the profile city plus a
+    /// coarse (~11 km) cell of the live GPS fix, so moving to a new
+    /// area or changing the profile city re-arms the banner. Pure.
+    static func awayBannerKey(city: String, gps: CLLocationCoordinate2D) -> String {
+        "\(normalizedCity(city))|\(Int(gps.latitude * 10))_\(Int(gps.longitude * 10))"
+    }
+
+    /// Geocode a city to a coordinate. A cached city answers
+    /// instantly; a new city goes through CLGeocoder once, then is
+    /// cached. Completion always runs on the main thread.
+    func coordinate(for city: String, completion: @escaping (CLLocationCoordinate2D?) -> Void) {
+        let key = Self.normalizedCity(city)
+        if let cached = cache[key] {
+            completion(cached)
+            return
+        }
+        guard !key.isEmpty else {
+            completion(nil)
+            return
+        }
+        // One lookup at a time: a new request cancels an in-flight
+        // one, and the cancelled completion reports no coordinate.
+        geocoder.cancelGeocode()
+        geocoder.geocodeAddressString(city) { [weak self] placemarks, _ in
+            let coordinate = placemarks?.first?.location?.coordinate
+            if let coordinate {
+                self?.cache[key] = coordinate
+            }
+            DispatchQueue.main.async { completion(coordinate) }
         }
     }
 }

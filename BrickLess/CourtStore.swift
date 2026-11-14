@@ -155,7 +155,7 @@ struct Court: Codable, Identifiable, Hashable {
 ///    in the app. These fill the gaps and can carry booking info.
 ///
 /// Overpass is a shared public service: results are cached per area and
-/// requests are kept small (5 km radius, 100 results max).
+/// requests are kept small (25 km radius, 200 results max).
 class CourtStore: ObservableObject {
     /// Launch sports: all phases except golf (phase 4). Basketball
     /// (phase 1), soccer + American football (phase 2), tennis +
@@ -174,7 +174,9 @@ class CourtStore: ObservableObject {
     private let db = Firestore.firestore()
     private var lastFetchKey = ""
 
-    func fetchCourts(around coordinate: CLLocationCoordinate2D, radiusMeters: Int = 5000) {
+    /// Wide enough to cover a metro area (25 km), not just the
+    /// immediate neighbourhood, so players see venues across town.
+    func fetchCourts(around coordinate: CLLocationCoordinate2D, radiusMeters: Int = 25000) {
         // Cache per ~1 km grid cell so panning the map does not re-query.
         let key = "\(Int(coordinate.latitude * 100))_\(Int(coordinate.longitude * 100))"
         guard key != lastFetchKey else { return }
@@ -218,7 +220,7 @@ class CourtStore: ObservableObject {
           node["leisure"="pitch"]["sport"~"\(sportPattern)"](around:\(radiusMeters),\(coordinate.latitude),\(coordinate.longitude));
           way["leisure"="pitch"]["sport"~"\(sportPattern)"](around:\(radiusMeters),\(coordinate.latitude),\(coordinate.longitude));
         );
-        out center 100;
+        out center 200;
         """
         var request = URLRequest(url: URL(string: "https://overpass-api.de/api/interpreter")!)
         request.httpMethod = "POST"

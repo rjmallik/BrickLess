@@ -187,16 +187,19 @@ struct ProfileSetupView: View {
                                     selectCitySuggestion(suggestion)
                                 } label: {
                                     Text(suggestion)
+                                        .foregroundColor(.white)
                                         .frame(maxWidth: .infinity, alignment: .leading)
                                 }
                                 .padding(.vertical, 8)
                                 .padding(.horizontal, 12)
-                                Divider()
+                                Rectangle()
+                                    .fill(Color.white.opacity(0.2))
+                                    .frame(height: 1)
                             }
                         }
-                        .background(Color(.systemBackground))
+                        .background(Color.black)
                         .cornerRadius(8)
-                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color(.systemGray4)))
+                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.white.opacity(0.3)))
                     }
                 }
                 .padding(.horizontal)
