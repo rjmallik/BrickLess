@@ -47,7 +47,10 @@ struct ProfileView: View {
                 }
 
                 VStack(alignment: .leading, spacing: 8) {
-                    row("Email", profile.email)
+                    // The player's own email, from Auth, not the profile:
+                    // the profile document holds no email, so no other
+                    // user can read it.
+                    row("Email", session.firebaseUser?.email ?? "")
                     row("Position", profile.position)
                     row("Skill", profile.skillLevel)
                     if !profile.sports.isEmpty {

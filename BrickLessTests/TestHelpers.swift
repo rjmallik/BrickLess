@@ -20,7 +20,6 @@ func makeProfile(
         id: id,
         username: username,
         usernameLower: username.lowercased(),
-        email: "rj@example.com",
         displayName: username,
         position: "Any",
         skillLevel: "Beginner",

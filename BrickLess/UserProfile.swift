@@ -3,12 +3,13 @@ import FirebaseFirestoreSwift
 
 /// A BrickLess player's public profile, stored in Firestore at `users/{uid}`.
 /// Usernames are unique: each one is also reserved in `usernames/{lowercasedUsername}`
-/// with `{ uid, email }`, so a username lookup is a single document read.
+/// with `{ uid }` only. The profile and the username reservation hold no
+/// private contact details: the email lives in Firebase Auth only, never
+/// in a Firestore document another user could read.
 struct UserProfile: Codable, Identifiable {
     @DocumentID var id: String?
     var username: String          // display form, e.g. "RJHoops"
     var usernameLower: String     // lowercased, used as the `usernames/` doc id
-    var email: String
     var displayName: String
     var position: String          // Point Guard, Shooting Guard, Small Forward, Power Forward, Center, Any
     var skillLevel: String        // Beginner, Intermediate, Advanced, Pro

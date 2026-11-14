@@ -2,7 +2,7 @@ import SwiftUI
 
 struct LoginView: View {
     @ObservedObject var session: SessionStore
-    @State private var emailOrUsername: String = ""
+    @State private var email: String = ""
     @State private var password: String = ""
     @State private var showingReset = false
     @State private var resetEmail: String = ""
@@ -15,7 +15,7 @@ struct LoginView: View {
                 .font(.system(size: 44, weight: .bold))
                 .padding(.bottom, 8)
 
-            TextField("Email or username", text: $emailOrUsername)
+            TextField("Email", text: $email)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
@@ -32,7 +32,7 @@ struct LoginView: View {
             } else {
                 Button("Login") {
                     errorMessage = nil
-                    session.signIn(emailOrUsername: emailOrUsername, password: password)
+                    session.signIn(email: email, password: password)
                 }
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)

@@ -304,7 +304,17 @@ class EventStore: ObservableObject {
             self.db.collection("events").document(id).updateData([
                 "playerUids": FieldValue.arrayUnion([uid])
             ]) { error in
-                completion(error.map(SessionStore.friendlyError))
+                guard let error else { completion(nil); return }
+                // The rules cap the player list: when another player took
+                // the last spot between the read above and this write, the
+                // rules reject it as permission-denied. Say so plainly
+                // instead of showing a raw Firebase error.
+                let nsError = error as NSError
+                if nsError.domain == "FIRFirestoreErrorDomain" && nsError.code == 7 {
+                    completion("That game just filled up.")
+                } else {
+                    completion(SessionStore.friendlyError(error))
+                }
             }
         }
     }

@@ -25,15 +25,10 @@ struct ContentView: View {
                         ProgressView("Signing you in…")
                             .padding()
                     } else {
-                        // Show the LoginView
+                        // Show the LoginView. It displays session.loginError
+                        // itself (via the errorMessage binding), so this
+                        // view must not print it again underneath.
                         LoginView(session: session, errorMessage: $session.loginError)
-                    }
-
-                    // Display error message from SessionStore if it exists
-                    if let errorMessage = session.loginError {
-                        Text(errorMessage)
-                            .foregroundColor(.red)
-                            .padding()
                     }
                 }
                 .navigationBarHidden(true) // Hide navigation bar

@@ -34,9 +34,10 @@ service cloud.firestore {
     }
 
     // Username reservations: anyone can read a name's mapping, because
-    // login-by-username has to resolve the name to an email BEFORE the
-    // user is signed in. Reads were sign-in-only, which made username
-    // login fail with "no account" for every real account.
+    // the signup availability check runs BEFORE the user is signed in.
+    // The mapping holds only the uid now, never an email: sign-in is
+    // email-only, and the email lives in Firebase Auth only, so no other
+    // user can learn an email by looking a username up.
     match /usernames/{name} {
       allow read: if true;
       allow create: if signedIn()

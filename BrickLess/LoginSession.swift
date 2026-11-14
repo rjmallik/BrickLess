@@ -129,7 +129,6 @@ class SessionStore: ObservableObject {
                     id: user.uid,
                     username: username,
                     usernameLower: username.lowercased(),
-                    email: email,
                     displayName: username,
                     position: "Any",
                     skillLevel: "Beginner",
@@ -140,7 +139,7 @@ class SessionStore: ObservableObject {
                     updatedAt: now
                 )
                 let batch = self.db.batch()
-                batch.setData(["uid": user.uid, "email": email],
+                batch.setData(["uid": user.uid],
                               forDocument: self.db.collection("usernames").document(username.lowercased()))
                 do {
                     try batch.setData(from: profile,
@@ -170,29 +169,20 @@ class SessionStore: ObservableObject {
     // MARK: - Sign in / out
 
     /// Accepts an email or a username, plus the password.
-    func signIn(emailOrUsername: String, password: String) {
-        let input = emailOrUsername.trimmingCharacters(in: .whitespaces)
+    func signIn(email: String, password: String) {
+        let input = email.trimmingCharacters(in: .whitespaces)
         guard !input.isEmpty, !password.isEmpty else {
-            loginError = "Enter your email or username and password."
+            loginError = "Enter your email and password."
             return
         }
         isLoading = true
         loginError = nil
 
-        if input.contains("@") {
-            signInWithEmail(input.lowercased(), password: password)
-        } else {
-            // Username sign-in: resolve it to the email first.
-            db.collection("usernames").document(input.lowercased()).getDocument { [weak self] snapshot, _ in
-                guard let self else { return }
-                guard let email = snapshot?.data()?["email"] as? String else {
-                    self.isLoading = false
-                    self.loginError = "Username or password not recognized."
-                    return
-                }
-                self.signInWithEmail(email, password: password)
-            }
-        }
+        // Email-only sign-in. Username sign-in was removed: resolving a
+        // username to an email needs a public username-to-email mapping,
+        // which would expose every user's email to anyone who looks a
+        // name up. The email lives in Firebase Auth only.
+        signInWithEmail(input.lowercased(), password: password)
     }
 
     private func signInWithEmail(_ email: String, password: String) {
@@ -679,7 +669,7 @@ class SessionStore: ObservableObject {
         func writeProfile() {
             var updated = self.profile ?? UserProfile(
                 id: user.uid, username: username, usernameLower: newLower,
-                email: user.email ?? "", displayName: displayName,
+                displayName: displayName,
                 position: position, skillLevel: skillLevel, city: city,
                 sports: sports,
                 profileComplete: true,
@@ -701,7 +691,7 @@ class SessionStore: ObservableObject {
             if !oldLower.isEmpty, oldLower != newLower {
                 batch.deleteDocument(self.db.collection("usernames").document(oldLower))
             }
-            batch.setData(["uid": user.uid, "email": user.email ?? ""],
+            batch.setData(["uid": user.uid],
                           forDocument: self.db.collection("usernames").document(newLower))
             do {
                 try batch.setData(from: updated, forDocument: self.db.collection("users").document(user.uid))
