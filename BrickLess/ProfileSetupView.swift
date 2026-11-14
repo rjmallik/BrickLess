@@ -19,6 +19,11 @@ struct ProfileSetupView: View {
     @State private var highestLevel: String = UserProfile.defaultHighestLevel
     @State private var errorMessage: String?
     @State private var usernameTaken: Bool = false
+    /// Location permission, offered at signup so the map works the first
+    /// time the user opens it. Skippable by design: the system prompt
+    /// fires at most once, and Save Profile below always works, with or
+    /// without location. The map still asks on first open as a fallback.
+    @StateObject private var locationManager = LocationManager()
 
     var body: some View {
         VStack {
@@ -117,6 +122,37 @@ struct ProfileSetupView: View {
             TextField("City (optional)", text: $city)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .padding(.horizontal)
+
+            // Location, offered here at signup so the map works the first
+            // time it opens. Never required: Save Profile below always
+            // works, and the map asks again on first open if skipped.
+            VStack(alignment: .leading, spacing: 8) {
+                Text("BrickLess uses your location to show basketball courts near you.")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                switch LocationManager.setupPrompt(for: locationManager.authorizationStatus) {
+                case .offerToEnable:
+                    Button("Allow Location Access") {
+                        locationManager.requestPermission()
+                    }
+                    .foregroundColor(.blue)
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 12)
+                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.blue))
+                    Text("Optional — you can skip this and the map will ask when you first open it.")
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+                case .enabled:
+                    Label("Location is on — we'll show courts near you.", systemImage: "checkmark.circle.fill")
+                        .font(.subheadline)
+                        .foregroundColor(.green)
+                case .unavailable:
+                    Text("Location is off. You can still use BrickLess — the map will show downtown Seattle. Turn it on later in Settings.")
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .padding(.horizontal)
 
             if let errorMessage {
                 Text(errorMessage).foregroundColor(.red).padding(.horizontal)

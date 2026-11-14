@@ -223,19 +223,49 @@ private struct AddCourtView: View {
 }
 
 /// Minimal location helper: asks once, then reports the user location.
-/// Shared with the Recreational hub, which shows nearby courts.
+/// Shared with the Recreational hub, which shows nearby courts, and
+/// with profile setup, which offers the location prompt at signup.
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var location: CLLocationCoordinate2D?
     /// True when the user denied (or is restricted from) location access.
     /// The map shows a fallback and says so instead of silently
     /// pretending the fallback is the user's location.
     @Published var locationDenied = false
+    /// Current authorization, so views can show the right state without
+    /// asking again. Updated whenever iOS reports a change.
+    @Published var authorizationStatus: CLAuthorizationStatus
     private let manager = CLLocationManager()
 
     override init() {
         super.init()
         manager.delegate = self
         manager.desiredAccuracy = kCLLocationAccuracyHundredMeters
+        authorizationStatus = manager.authorizationStatus
+    }
+
+    /// What the profile-setup location step should show for a given
+    /// authorization status. Pure so it is unit-testable without a device.
+    /// - offerToEnable: the system prompt has never fired; show the button.
+    /// - enabled: location is on; just say so.
+    /// - unavailable: denied or restricted — iOS will not re-prompt, so
+    ///   there is no button; the user can still finish signup.
+    enum LocationSetupPrompt: Equatable {
+        case offerToEnable
+        case enabled
+        case unavailable
+    }
+
+    static func setupPrompt(for status: CLAuthorizationStatus) -> LocationSetupPrompt {
+        switch status {
+        case .notDetermined:
+            return .offerToEnable
+        case .authorizedWhenInUse, .authorizedAlways:
+            return .enabled
+        case .denied, .restricted:
+            return .unavailable
+        @unknown default:
+            return .unavailable
+        }
     }
 
     func requestPermission() {
@@ -250,6 +280,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     }
 
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        authorizationStatus = manager.authorizationStatus
         switch manager.authorizationStatus {
         case .denied, .restricted:
             locationDenied = true
