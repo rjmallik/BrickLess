@@ -63,7 +63,7 @@ struct RegisterView: View {
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background(Color.green)
+                .background(PlayMatchColors.brand)
                 .cornerRadius(8)
                 .padding()
             }

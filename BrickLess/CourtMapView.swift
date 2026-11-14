@@ -50,32 +50,20 @@ struct CourtMapView: View {
             : "Finding \(Court.venueWordPlural(forSport: selectedSport))…"
     }
 
-    /// Pin icon and colour per sport. "figure.american.football" is an
-    /// SF Symbol available since iOS 16.
-    private func pinIcon(for sport: String) -> (String, Color) {
-        switch sport {
-        case "soccer": return ("soccerball", .green)
-        case "football": return ("figure.american.football", .brown)
-        case "tennis": return ("figure.tennis", .green)
-        case "pickleball": return ("sportscourt", .teal)
-        case "table_tennis": return ("figure.table.tennis", .pink)
-        case "multi": return ("sportscourt", .purple)
-        default: return ("basketball", .orange)
-        }
-    }
-
     var body: some View {
         ZStack(alignment: .top) {
             Map(position: $cameraPosition, selection: $selectedCourt) {
                 ForEach(visibleCourts) { court in
                     Annotation(court.name, coordinate: court.coordinate) {
-                        let pin = pinIcon(for: court.sport)
-                        Image(systemName: pin.0)
+                        let pin = SportTabs.pinStyle(forTag: court.sport)
+                        Image(systemName: pin.symbol)
                             .font(.title2)
                             .padding(8)
-                            .background(pin.1)
+                            .background(pin.color)
                             .foregroundColor(.white)
                             .clipShape(Circle())
+                            .overlay(Circle().stroke(Color.white, lineWidth: 2))
+                            .shadow(radius: 3)
                     }
                     .tag(court)
                 }
@@ -192,10 +180,10 @@ private struct CourtDetailView: View {
 
             Button("Book this \(Court.venueWord(forSport: court.sport))") { showingBooking = true }
                 .foregroundColor(.white).frame(maxWidth: .infinity).padding()
-                .background(Color.blue).cornerRadius(8)
+                .background(PlayMatchColors.brand).cornerRadius(8)
             Button("Post a game here") { showingEvents = true }
                 .foregroundColor(.white).frame(maxWidth: .infinity).padding()
-                .background(Color.purple).cornerRadius(8)
+                .background(SportTabs.pinStyle(forTag: court.sport).color).cornerRadius(8)
             Spacer()
         }
         .padding()
@@ -262,7 +250,7 @@ private struct AddCourtView: View {
                 }
             }
             .foregroundColor(.white).frame(maxWidth: .infinity).padding()
-            .background(Color.green).cornerRadius(8)
+            .background(PlayMatchColors.brand).cornerRadius(8)
             Spacer()
         }
         .padding()

@@ -1,5 +1,27 @@
 import SwiftUI
 
+/// The PlayMatch color system. One brand accent (the vivid orange
+/// from RJ's website, #e8590c) for primary buttons and the tab bar,
+/// plus one distinct color per sport for pins, chips and sections.
+/// The rest of the UI stays light and simple.
+enum PlayMatchColors {
+    /// Brand orange, from RJ's website (#e8590c).
+    static let brand = rgb(232, 89, 12)
+    static let basketball = brand
+    static let soccer = rgb(47, 158, 68)
+    static let football = rgb(141, 90, 43)
+    static let tennis = rgb(130, 201, 30)
+    static let pickleball = rgb(18, 184, 134)
+    static let tableTennis = rgb(230, 73, 128)
+    /// Golf is not open yet (phase 4) but is mapped so it is ready.
+    static let golf = rgb(250, 176, 5)
+    static let multi = rgb(112, 72, 232)
+
+    private static func rgb(_ r: Int, _ g: Int, _ b: Int) -> Color {
+        Color(red: Double(r) / 255, green: Double(g) / 255, blue: Double(b) / 255)
+    }
+}
+
 /// The sport tab bar shared by the Location and Events tabs, and the
 /// pure helpers that decide which courts and games a sport tab shows.
 ///
@@ -88,6 +110,35 @@ enum SportTabs {
         }
         return "basketball"
     }
+
+    /// The map pin for a sport: the white SF Symbol drawn in the pin
+    /// and the pin's color. The four ball sports use their ball
+    /// symbol; pickleball, table tennis and golf use their figure
+    /// symbol, because Apple ships no ball-only symbol for them.
+    /// Golf is not open yet (phase 4) but is mapped so it is ready.
+    /// "multi" is a pitch serving several sports, shown with a
+    /// runner. Unknown tags fall back to basketball. Pure so it is
+    /// unit-testable.
+    static func pinStyle(forTag tag: String) -> (symbol: String, color: Color) {
+        switch tag {
+        case "basketball": return ("basketball.fill", PlayMatchColors.basketball)
+        case "soccer": return ("soccerball.fill", PlayMatchColors.soccer)
+        case "football": return ("football.fill", PlayMatchColors.football)
+        case "tennis": return ("tennisball.fill", PlayMatchColors.tennis)
+        case "pickleball": return ("figure.pickleball", PlayMatchColors.pickleball)
+        case "table_tennis": return ("figure.table.tennis", PlayMatchColors.tableTennis)
+        case "golf": return ("figure.golf", PlayMatchColors.golf)
+        case "multi": return ("figure.run", PlayMatchColors.multi)
+        default: return ("basketball.fill", PlayMatchColors.basketball)
+        }
+    }
+
+    /// The color for a sport tab or chip: the sport's color, or the
+    /// brand orange for the All tab.
+    static func color(forTag tag: String) -> Color {
+        if tag == allTag { return PlayMatchColors.brand }
+        return pinStyle(forTag: tag).color
+    }
 }
 
 /// Horizontal scrollable sport chips: All + the six launch sports.
@@ -112,11 +163,11 @@ struct SportTabBar: View {
         Button {
             selected = tag
         } label: {
-            Text(label)
+            Label(label, systemImage: tag == SportTabs.allTag ? "sportscourt.fill" : SportTabs.pinStyle(forTag: tag).symbol)
                 .font(.subheadline.bold())
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
-                .background(selected == tag ? Color.orange : Color(.systemGray5))
+                .background(selected == tag ? SportTabs.color(forTag: tag) : Color(.systemGray5))
                 .foregroundColor(selected == tag ? .white : .primary)
                 .clipShape(Capsule())
         }

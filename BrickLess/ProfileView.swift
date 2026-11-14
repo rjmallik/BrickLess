@@ -22,7 +22,7 @@ struct ProfileView: View {
                     .font(.system(size: 48, weight: .bold))
                     .foregroundColor(.white)
                     .frame(width: 96, height: 96)
-                    .background(Color.red)
+                    .background(PlayMatchColors.brand)
                     .clipShape(Circle())
 
                 Text(profile.displayName)
@@ -64,8 +64,11 @@ struct ProfileView: View {
                 // Falls back to the primary position/skill for legacy
                 // profiles that predate per-sport detail.
                 ForEach(profile.sportProfiles.isEmpty ? [legacySportProfile(of: profile)] : profile.sportProfiles, id: \.sport) { sportProfile in
+                    let style = sportStyle(for: sportProfile.sport)
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(sportProfile.sport).font(.headline)
+                        Label(sportProfile.sport, systemImage: style.symbol)
+                            .font(.headline)
+                            .foregroundColor(style.color)
                         row("Positions", sportProfile.positions.joined(separator: ", "))
                         row("Skill level", sportProfile.skillLevel)
                         if let level = sportProfile.highestLevel {
@@ -83,17 +86,10 @@ struct ProfileView: View {
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.blue)
+                    .background(PlayMatchColors.brand)
                     .cornerRadius(8)
                     .padding(.horizontal)
 
-                NavigationLink("My Bookings", destination: MyBookingsView())
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.green)
-                    .cornerRadius(8)
-                    .padding(.horizontal)
             } else {
                 ProgressView()
             }
@@ -145,6 +141,13 @@ struct ProfileView: View {
                      positions: [profile.position],
                      skillLevel: profile.skillLevel,
                      highestLevel: profile.highestLevel)
+    }
+
+    /// The pin style (ball icon + color) for a profile display name
+    /// ("American Football" -> football). Unknown names fall back to
+    /// basketball.
+    private func sportStyle(for displayName: String) -> (symbol: String, color: Color) {
+        SportTabs.pinStyle(forTag: SportTabs.tag(forDisplayName: displayName) ?? "basketball")
     }
 
     private func row(_ label: String, _ value: String) -> some View {

@@ -58,6 +58,7 @@ struct MainAppView: View {
             ProfileView(session: session)
                 .tabItem { Label("Profile", systemImage: "person.circle") }
         }
+        .tint(PlayMatchColors.brand)
     }
 }
 

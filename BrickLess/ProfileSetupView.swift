@@ -67,12 +67,14 @@ struct ProfileSetupView: View {
                         .foregroundColor(.secondary)
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 100))], alignment: .leading, spacing: 8) {
                         ForEach(UserProfile.allSports, id: \.self) { sport in
-                            Button(sport) {
+                            Button {
                                 toggleSport(sport)
+                            } label: {
+                                Label(sport, systemImage: sportStyle(for: sport).symbol)
                             }
                             .padding(.horizontal, 12)
                             .padding(.vertical, 8)
-                            .background(sports.contains(sport) ? Color.blue : Color(.systemGray5))
+                            .background(sports.contains(sport) ? sportStyle(for: sport).color : Color(.systemGray5))
                             .foregroundColor(sports.contains(sport) ? .white : .primary)
                             .cornerRadius(16)
                         }
@@ -128,10 +130,10 @@ struct ProfileSetupView: View {
                         Button("Allow Location Access") {
                             locationManager.requestPermission()
                         }
-                        .foregroundColor(.blue)
+                        .foregroundColor(PlayMatchColors.brand)
                         .padding(.vertical, 8)
                         .padding(.horizontal, 12)
-                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.blue))
+                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(PlayMatchColors.brand))
                         Text("Optional — you can skip this and the map will ask when you first open it.")
                             .font(.footnote)
                             .foregroundColor(.secondary)
@@ -187,7 +189,7 @@ struct ProfileSetupView: View {
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.blue)
+                    .background(PlayMatchColors.brand)
                     .cornerRadius(8)
                     .padding()
                 }
@@ -242,6 +244,13 @@ struct ProfileSetupView: View {
         }
     }
 
+    /// The pin style (ball icon + color) for a profile display name
+    /// ("American Football" -> football). Unknown names fall back to
+    /// basketball.
+    private func sportStyle(for displayName: String) -> (symbol: String, color: Color) {
+        SportTabs.pinStyle(forTag: SportTabs.tag(forDisplayName: displayName) ?? "basketball")
+    }
+
     /// Binding to a sport's draft, creating a fresh one if missing.
     private func draftBinding(for sport: String) -> Binding<SportProfile> {
         Binding(
@@ -257,10 +266,16 @@ struct ProfileSetupView: View {
 private struct SportSetupSection: View {
     @Binding var draft: SportProfile
 
+    /// The ball icon + color for this section's sport.
+    private var sportStyle: (symbol: String, color: Color) {
+        SportTabs.pinStyle(forTag: SportTabs.tag(forDisplayName: draft.sport) ?? "basketball")
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(draft.sport)
+            Label(draft.sport, systemImage: sportStyle.symbol)
                 .font(.headline)
+                .foregroundColor(sportStyle.color)
             Text("Positions")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
@@ -271,7 +286,7 @@ private struct SportSetupSection: View {
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
-                    .background(draft.positions.contains(position) ? Color.blue : Color(.systemGray5))
+                    .background(draft.positions.contains(position) ? sportStyle.color : Color(.systemGray5))
                     .foregroundColor(draft.positions.contains(position) ? .white : .primary)
                     .cornerRadius(16)
                 }

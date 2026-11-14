@@ -13,6 +13,7 @@ struct LoginView: View {
         VStack {
             Text("PlayMatch")
                 .font(.system(size: 44, weight: .bold))
+                .foregroundColor(PlayMatchColors.brand)
                 .padding(.bottom, 8)
 
             TextField("Email", text: $email)
@@ -39,7 +40,7 @@ struct LoginView: View {
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background(Color.blue)
+                .background(PlayMatchColors.brand)
                 .cornerRadius(8)
                 .padding()
             }
@@ -86,7 +87,7 @@ struct RememberMeCheckbox: View {
         } label: {
             HStack(spacing: 8) {
                 Image(systemName: rememberMe ? "checkmark.square.fill" : "square")
-                    .foregroundColor(rememberMe ? .blue : .secondary)
+                    .foregroundColor(rememberMe ? PlayMatchColors.brand : .secondary)
                 Text("Remember me")
                     .foregroundColor(.primary)
                 Spacer()
