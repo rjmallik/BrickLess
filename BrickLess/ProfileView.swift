@@ -15,7 +15,8 @@ struct ProfileView: View {
     @State private var deleteError: String?
 
     var body: some View {
-        VStack(spacing: 16) {
+        ScrollView {
+            VStack(spacing: 16) {
             if let profile = session.profile {
                 Text(String(profile.displayName.prefix(1)).uppercased())
                     .font(.system(size: 48, weight: .bold))
@@ -119,6 +120,7 @@ struct ProfileView: View {
             Spacer()
         }
         .padding(.top)
+        }
         .sheet(isPresented: $showingSetup) {
             ProfileSetupView(session: session)
         }
